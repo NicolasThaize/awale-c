@@ -1,5 +1,5 @@
 EXE_SERVER = bin/server/main.out
-SRC_SERVER = $(wildcard src/server/*.cpp)
+SRC_SERVER = $(wildcard src/server/*.c)
 HEADERS_SERVER = $(wildcard src/server/*.h)
 BDIR_SERVER = build/server/
 OBJ_SERVER = $(HEADERS_SERVER:src/server/%.h=$(BDIR_SERVER)%.o)
@@ -12,7 +12,7 @@ BDIR_CLIENT = build/client/
 OBJ_CLIENT = $(HEADERS_CLIENT:src/client/%.h=$(BDIR_CLIENT)%.o)
 DEPS_CLIENT = $(HEADERS_CLIENT:src/client/%.h=$(BDIR_CLIENT)%.d)
 
-FLAG_DEBUG = -DMAP -DTRACE -g -Wall -Wextra -Werror# -ansi -Og# -fsanitize=address -fno-omit-frame-pointer
+FLAG_DEBUG = -DMAP -DTRACE -g -Wall# -Wextra -Werror# -ansi -Og# -fsanitize=address -fno-omit-frame-pointer
 FLAG_FINAL = -pedantic -Wall -Wextra -Werror -DNDEBUG -O3
 LIBS = 
 CXX = gcc
@@ -37,14 +37,14 @@ help : ## affiche cette aide
 .PHONY:server
 server : $(EXE_SERVER) ## (defaut) compile le serveur debug
 
-$(EXE_SERVER) : $(OBJ_SERVER) # linkage $(EXE)
+$(EXE_SERVER) : $(SRC_SERVER) # linkage $(EXE)
 	$(CXX) $(FLAG_DEBUG) -o $@ $^ $(LIBS)
 
-$(BDIR_SERVER)%.d : src/server/%.cpp # dependances
-	$(CXX) $(FLAG_DEBUG) -MMD -c $< -o $@ $(LIBS)
+# $(BDIR_SERVER)%.d : src/server/%.c # dependances
+# 	$(CXX) $(FLAG_DEBUG) -MMD -c $< -o $@ $(LIBS)
 
-$(BDIR_SERVER)%.o : src/server/%.cpp $(DEPS_SERVER) # compilation
-	$(CXX) $(FLAG_DEBUG) -c $< -o $@ $(LIBS)
+# $(BDIR_SERVER)%.o : src/server/%.c $(DEPS_SERVER) # compilation
+# 	$(CXX) $(FLAG_DEBUG) -c $< -o $@ $(LIBS)
 
 # --------------------  -------------------- #
 
@@ -54,10 +54,10 @@ client : $(EXE_CLIENT) ## (defaut) compile le client debug
 $(EXE_CLIENT) : $(OBJ_CLIENT) # linkage $(EXE)
 	$(CXX) $(FLAG_DEBUG) -o $@ $^ $(LIBS)
 
-$(BDIR_CLIENT)%.d : src/client/%.cpp # dependances
+$(BDIR_CLIENT)%.d : src/client/%.c # dependances
 	$(CXX) $(FLAG_DEBUG) -MMD -c $< -o $@ $(LIBS)
 
-$(BDIR_CLIENT)%.o : src/client/%.cpp $(DEPS_CLIENT) # compilation
+$(BDIR_CLIENT)%.o : src/client/%.c $(DEPS_CLIENT) # compilation
 	$(CXX) $(FLAG_DEBUG) -c $< -o $@ $(LIBS)
 
 # --------------------  -------------------- #
@@ -89,8 +89,6 @@ clean : ## supprime les dépendances, les fichiers objets, la doc et les executa
 	@rm -f $(DEPS_SERVER) $(DEPS_CLIENT)
 	@echo "suppression des objets"
 	@rm -f $(OBJ_SERVER) $(OBJ_CLIENT)
-	@echo "suppression des données temporaires applicatives (/data/tmp/)"
-	@rm data/tmp/*
 	@echo "suppression de la documentation"
 	@rm -rf doc/html* doc/xml*
 	@echo "suppression des executables"
@@ -99,7 +97,7 @@ clean : ## supprime les dépendances, les fichiers objets, la doc et les executa
 # --------------------  -------------------- #
 
 .PHONY:verif
-verif : ## affiche le contenu des variables du makefile
+verif :
 	echo "fichiers sources : " $(SRC); \
 	echo "fichiers objets : " $(OBJ); \
 	echo "fichiers executables : " $(EXE); \
@@ -123,22 +121,10 @@ doc : ## génère la documentation avec doxygen
 
 ifneq ("$(wildcard tools/newClasse.sh)","")
 .PHONY:new
-new : ## génère une nouvelle classe /!\ n'est valable que si les squelettes et le script newClasse.sh sont présents dans tools/
+new :
 	@read -p "entrez le nom de la nouvelle classe : " n; \
 	./tools/newClasse.sh $$n
 endif
-
-# --------------------  -------------------- #
-
-.PHONY:update
-update : ## fais les modifications git (git commit puis git push et enfin git status)
-	$(info Modifs git :)
-	@git diff --stat
-	@git add *
-	@read -p "Entrez le commentaire de la modification : " commentaire; \
-	git commit -m "$$commentaire" -a
-	@git push
-	@git status
 
 # --------------------  -------------------- #
 

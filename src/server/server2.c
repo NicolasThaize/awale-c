@@ -117,6 +117,13 @@ static void app(void)
                }
                else
                {
+                  if (buffer[0] == '/' && buffer[1] == 't') {
+                     // char mes[1000] = "" client.name " use /t";
+                     char mes[1000] = "";
+                     strcat(client.name,mes);
+                     strcat(" use /t",mes);
+                     send_message_to_all_clients(clients, client, actual, mes, 0);
+                  }
                   send_message_to_all_clients(clients, client, actual, buffer, 0);
                }
                break;
