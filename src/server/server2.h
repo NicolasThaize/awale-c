@@ -5,7 +5,7 @@
 
 #include <winsock2.h>
 
-#elif defined (linux)
+#elif (defined __linux__) || (defined __APPLE__)
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -28,7 +28,7 @@ typedef struct in_addr IN_ADDR;
 #endif
 
 #define CRLF        "\r\n"
-#define PORT         9999
+#define PORT         1977
 #define MAX_CLIENTS     100
 
 #define BUF_SIZE    1024

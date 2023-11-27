@@ -53,5 +53,12 @@ list of players that have subscribed to a diffusion -> correspond to a certain s
 - `diffusionGamesList[]` : list of pseudos that are in the state list of in progress games
 - `diffusionGames[][]` : list of pseudos that are in the state specific game
 
+## tips
+
+- write on the line before : `\e[1A\e`
+- write N lines before : `\e[{N}A\e`
+- 
+
+
 
 

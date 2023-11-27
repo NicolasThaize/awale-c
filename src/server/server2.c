@@ -71,7 +71,7 @@ static void app(void)
       {
          /* new client */
          SOCKADDR_IN csin = { 0 };
-         size_t sinsize = sizeof csin;
+         socklen_t sinsize = sizeof csin;
          int csock = accept(sock, (SOCKADDR *)&csin, &sinsize);
          if(csock == SOCKET_ERROR)
          {
@@ -117,13 +117,13 @@ static void app(void)
                }
                else
                {
-                  if (buffer[0] == '/' && buffer[1] == 't') {
-                     // char mes[1000] = "" client.name " use /t";
-                     char mes[1000] = "";
-                     strcat(client.name,mes);
-                     strcat(" use /t",mes);
-                     send_message_to_all_clients(clients, client, actual, mes, 0);
-                  }
+                  // if (buffer[0] == '/' && buffer[1] == 't') {
+                  //    // char mes[1000] = "" client.name " use /t";
+                  //    char mes[1000] = "";
+                  //    strcat(client.name,mes);
+                  //    strcat(" use /t",mes);
+                  //    send_message_to_all_clients(clients, client, actual, mes, 0);
+                  // }
                   send_message_to_all_clients(clients, client, actual, buffer, 0);
                }
                break;
@@ -244,3 +244,5 @@ int main(int argc, char **argv)
 
    return EXIT_SUCCESS;
 }
+
+
