@@ -47,16 +47,17 @@ if observer :
 
 list of players that have subscribed to a diffusion -> correspond to a certain state
 
-- `diffusionChatGlobal[]` : list of pseudos that have access to the global chat
-- `diffusionMainMenu[]` : list of pseudos that are in the state main menu
-- `diffusionUsersList[]` : list of pseudos that are in the state list of user
-- `diffusionGamesList[]` : list of pseudos that are in the state list of in progress games
-- `diffusionGames[][]` : list of pseudos that are in the state specific game
+- `diffusionChatGlobal[]`	: list of pseudos that have access to the global chat				: no state
+- `diffusionMainMenu[]`		: list of pseudos that are in the state main menu					: `m` (main menu)
+- `diffusionUsersList[]`	: list of pseudos that are in the state list of user				: `u` (user list)
+- `diffusionGamesList[]`	: list of pseudos that are in the state list of in progress games	: `g` (game list)
+- `diffusionGames[][]`		: list of pseudos that are in the state specific game				: `p` (playing or viewing)
 
 ## tips
 
 - write on the line before : `\e[1A\e`
 - write N lines before : `\e[{N}A\e`
+- seg fault : `gdb {executable}` then `run` then `where` when the program stop
 - 
 
 

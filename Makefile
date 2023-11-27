@@ -12,7 +12,7 @@ BDIR_CLIENT = build/client/
 OBJ_CLIENT = $(HEADERS_CLIENT:src/client/%.h=$(BDIR_CLIENT)%.o)
 DEPS_CLIENT = $(HEADERS_CLIENT:src/client/%.h=$(BDIR_CLIENT)%.d)
 
-FLAG_DEBUG = -DMAP -DTRACE -g -Wall# -Wextra -Werror# -ansi -Og# -fsanitize=address -fno-omit-frame-pointer
+FLAG_DEBUG = -DMAP -DTRACE -ggdb -Wall# -Wextra -Werror# -ansi -Og# -fsanitize=address -fno-omit-frame-pointer
 FLAG_FINAL = -pedantic -Wall -Wextra -Werror -DNDEBUG -O3
 LIBS = 
 CXX = gcc

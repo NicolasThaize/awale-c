@@ -79,7 +79,8 @@ static void app(const char *address, const char *name)
             printf("Server disconnected !\n");
             break;
          }
-         puts(buffer);
+         // puts(buffer);
+         printf("\e[2A\e%s\n-------------------------\n%s : ",buffer,name);
       }
    }
 
