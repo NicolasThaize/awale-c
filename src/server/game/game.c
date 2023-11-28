@@ -1,5 +1,7 @@
-
 #include "game.h"
+#include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #ifdef TRACE
 #define debug(expression) (printf("%s:%d -> " #expression "\n",__FILE__,__LINE__))
@@ -14,7 +16,18 @@
 
 char notEmpty(int board[12]) {}
 char forcedMove(int board[12]) {}
-char init(int board[12]) {}
+
+char generateFirstPlayer() {
+    srand(time(NULL)); 
+    int r = rand() % 2;
+    char currentJoueur[2] = {'A', 'B'};
+    return currentJoueur[r];
+}
+
+Game* init(Client* playerA, Client* playerB) {
+    Game g = {{4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, playerA, playerB, generateFirstPlayer()};
+    return &g;
+}
 
 
 
