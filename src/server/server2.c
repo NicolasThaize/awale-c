@@ -192,9 +192,24 @@ static void select_game(Client client, int input) {
 static void play(Client client, int input) {
    char board[12] = {6,5,4,0,0,6,6,1,0,7,7,6}; // int sur 1 octet
    show_board(board);
+   char aa;
+   scanf("select case : %c", &aa);
+   printf("You have selected ");
+   printf("%c",convert(aa));
 }
 
 static void show_board(const char* board) {
+   printf("\n");
+   for (int i=12; i>9; i--) {
+      printf("  %d",i);
+   }
+   for (int i=9; i>6; i--) {
+      printf("  %d ",i);
+   }
+   printf("\n");
+   for (int i=0; i<6; i++)
+      printf(" ---");
+   printf("\n");
    for (int i=0; i<6; i++) {
       if (board[i] > 9) {
          printf("|%d ",board[i]);
@@ -212,6 +227,27 @@ static void show_board(const char* board) {
          printf("| %d ",board[i]);
       }
    } printf("|\n");
+   for (int i=0; i<6; i++)
+      printf(" ---");
+   printf("\n");
+   for (int i=0; i<6; i++) {
+      printf("  %d ",i+1);
+   }
+   printf("\n\n");
+}
+
+static char convert(char userInput) {
+   char res;
+   if ( userInput<7 && userInput>0 ) {
+      res = userInput-7;
+   } else if ( userInput<13 ) {
+      res = 13-userInput;
+   }
+   else {
+      debugc(userInput);
+      res = -1;
+   }
+   return res;
 }
 
 static Client find_client(Client *clients, int numClients, const char* name) {

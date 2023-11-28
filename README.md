@@ -60,6 +60,11 @@ list of players that have subscribed to a diffusion -> correspond to a certain s
 - seg fault : `gdb {executable}` then `run` then `where` when the program stop
 - 
 
+## bugs
 
+- when disconnecting send too many disconnected messages
+- message received when start typing are not well printed on the terminal
+- 
+- 
 
 

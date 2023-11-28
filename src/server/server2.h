@@ -51,6 +51,7 @@ static void select_user(Client client, int input);
 static void select_game(Client client, int input);
 static void play(Client client, int input);
 static void show_board(const char* board);
+static char convert(char userInput);
 static void remove_client(Client *clients, int to_remove, int *actual);
 static void clear_clients(Client *clients, int actual);
 
