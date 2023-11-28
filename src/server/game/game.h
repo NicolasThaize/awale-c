@@ -7,6 +7,7 @@ struct game
 	int board[12];
 	int tmp[12];
 	char player;
+	char finished;
 };
 
 

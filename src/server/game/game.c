@@ -110,6 +110,31 @@ char moveOkay(Game g, int move) {
 }
 
 
+int main() {
+	Game g;
+	int move;
+	init(g);
+	while (!g.finished) {
+		showBoard(g.board);
+		printf("Player %d",g.player);
+		scanf(" move : %d",&move);
+		if (moveOkay(g,move)) {
+			g.board = g.tmp;
+			g.player = nextPlayer(g.player);
+			if ( empty(g.board,nextPlayer(g.player)) && bestMove(g.board, g.player) == -1 ) // move that make you loose
+			{
+				g.finished = 1;
+				printf("Player %d win !\n",g.player);
+			}
+		} else if ( moveOkay(g,move) == 1 ) {
+			printf("Forced move : you have to use the move that give the most to the opponent\n");
+		} else if ( moveOkay(g,move) == 2 ) {
+			printf("It appear that you have win\n");
+		} else {
+			printf("There is an error\n");
+		}
+	}
+}
 
 
 
