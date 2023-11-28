@@ -51,6 +51,7 @@ static void app(const char *address, const char *name)
          exit(errno);
       }
 
+      // printf("-------------------------\n%s : ",name);
       /* something from standard input : i.e keyboard */
       if(FD_ISSET(STDIN_FILENO, &rdfs))
       {
@@ -69,6 +70,9 @@ static void app(const char *address, const char *name)
             }
          }
          write_server(sock, buffer);
+         // printf("\033[F\033[F%s\n-------------------------\n%s : ",buffer,name);
+		//  fseek(STDIN_FILENO, SEEK_END, 0);
+         // fflush(stdout);
       }
       else if(FD_ISSET(sock, &rdfs))
       {
@@ -79,8 +83,10 @@ static void app(const char *address, const char *name)
             printf("Server disconnected !\n");
             break;
          }
-         // puts(buffer);
-         printf("\e[2A\e%s\n-------------------------\n%s : ",buffer,name);
+         puts(buffer);
+         // printf("\033[F\033[F%s\n-------------------------\n%s : ",buffer,name);
+		//  fseek(STDIN_FILENO, SEEK_END, 0);
+         // fflush(stdout);
       }
    }
 

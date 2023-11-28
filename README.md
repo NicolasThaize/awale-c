@@ -55,7 +55,7 @@ list of players that have subscribed to a diffusion -> correspond to a certain s
 
 ## tips
 
-- write on the line before : `\e[1A\e`
+- write on the line before : `\033[F` (or `\e[1A\e` but work strangely)
 - write N lines before : `\e[{N}A\e`
 - seg fault : `gdb {executable}` then `run` then `where` when the program stop
 - 

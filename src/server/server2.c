@@ -8,8 +8,12 @@
 
 #ifdef TRACE
 #define debug(expression) (printf("%s:%d -> " #expression "\n",__FILE__,__LINE__))
+#define debugd(expression) (printf("%s:%d -> %d " #expression "\n",__FILE__,__LINE__,expression))
+#define debugc(expression) (printf("%s:%d -> %c " #expression "\n",__FILE__,__LINE__,expression))
 #else
 #define debug(expression) ((void)0)
+#define debugd(expression) ((void)0)
+#define debugc(expression) ((void)0)
 #endif
 
 static void init(void) {
@@ -31,8 +35,6 @@ static void end(void) {
 }
 
 static void app(void) {
-   debug("test");
-   printf("hello");
    SOCKET sock = init_connection();
    char buffer[BUF_SIZE];
    /* the index for the array */
@@ -43,7 +45,7 @@ static void app(void) {
    // Client diffusionMainMenu[MAX_CLIENTS];
    // Client diffusionUsersList[MAX_CLIENTS];
    // Client diffusionGamesList[MAX_CLIENTS];
-   Client diffusionGames[MAX_GAMES][MAX_CLIENTS];
+   // Client diffusionGames[MAX_GAMES][MAX_CLIENTS];
 
    fd_set rdfs;
 
@@ -111,31 +113,34 @@ static void app(void) {
                   send_message_to_all_clients(diffusionChatGlobal, client, actual, buffer, 1);
                }
                else {
-                  Client* diffusion;
+                  // Client* diffusion;
                   if ( buffer[0] == '/' ) {
                      switch (buffer[1]) {
                      case 'y':
-                        int id = 1; // find method for unique game
-                        diffusion = diffusionGames[id];
-                        diffusion[0] = client;
-                        diffusion[0].state = 'p';
-                        diffusion[1] = find_client(diffusionChatGlobal, actual, buffer+3); // find the name
-                        diffusion[1].state = 'p';
+                        // int id = 1; // find method for unique game
+                        // diffusion = diffusionGames[id];
+                        // diffusion[0] = client;
+                        // diffusion[0].state = 'p';
+                        // diffusion[1] = find_client(diffusionChatGlobal, actual, buffer+3); // find the name
+                        // diffusion[1].state = 'p';
                         // sprintf(buffer, "%s use /yes", client.name);
+                        find_client(diffusionChatGlobal,actual,buffer+3);
+                        
                         strncpy(buffer, client.name, BUF_SIZE-1);
                         strncat(buffer, " use /y", sizeof buffer - strlen(buffer)-1);
                         break;
                      case 'n':
+                        // diffusion = diffusionMainMenu;
                         // sprintf(buffer, "%s use /no", client.name);
                         strncpy(buffer, client.name, BUF_SIZE-1);
                         strncat(buffer, " use /n", sizeof buffer - strlen(buffer)-1);
                         break;
                      case 'm':
-                        diffusion = diffusionChatGlobal;
+                        // diffusion = diffusionChatGlobal;
                         sprintf(buffer, buffer+3); // escape "/m "
                         break;
                      default:
-                        diffusion = diffusionChatGlobal;
+                        // diffusion = diffusionChatGlobal;
                         // sprintf(buffer, "%s use unknown / command", client.name);
                         strncpy(buffer, client.name, BUF_SIZE-1);
                         strncat(buffer, " use unknown / command", sizeof buffer - strlen(buffer)-1);
@@ -143,10 +148,11 @@ static void app(void) {
                      }
                   } else {
                      if ( buffer[0]-'0' >= 0 && buffer[0]-'0' <= 9 ) { // c'est un nombre
+                        debugd(atoi(buffer));
                         action(client,atoi(buffer));
                      }
                   }
-                  send_message_to_all_clients(diffusion, client, actual, buffer, 0);
+                  send_message_to_all_clients(diffusionChatGlobal, client, actual, buffer, 0);
                }
                break;
             }
@@ -159,6 +165,7 @@ static void app(void) {
 }
 
 static void action(Client client, int input) {
+   debugd(input);
    switch (client.state) {
    case 'u':
       select_user(client,input);
@@ -170,6 +177,8 @@ static void action(Client client, int input) {
       play(client,input);
       break;
    default:
+      play(client,input);
+      debugc(client.state);
       break;
    }
 }
@@ -277,8 +286,6 @@ static int init_connection(void) {
       exit(errno);
    }
 
-   debug("test");
-   debug(sock);
    return sock;
 }
 
@@ -308,18 +315,16 @@ static void write_client(SOCKET sock, const char *buffer) {
 }
 
 int main(int argc, char **argv) {
-   printf("helloo");
-   debug("hello12");
-   printf("hello2");
+
    init();
 
-   debug("testttt");
    app();
 
    end();
 
    return EXIT_SUCCESS;
 }
+
 
 
 
