@@ -14,24 +14,23 @@
 #endif
 
 
-char generateFirstPlayer() {
+static char generateFirstPlayer() {
     srand(time(NULL)); 
     int r = rand() % 2;
     char currentJoueur[2] = {1, 2}; // {'A', 'B'}
     return currentJoueur[r];
 }
 
-
-char init(Game g) {
+static char init(Game* g) {
 	for (int i=0; i<12; i++) {
-		g.board[i] = 4;
+		g->board[i] = 4;
 	}
-	g.currentPlayer = generateFirstPlayer();
-	g.finished = 0;
-	g.scoreA = 0;
-	g.scoreB = 0;
+	g->currentPlayer = generateFirstPlayer();
+	g->finished = 0;
+	g->scoreA = 0;
+	g->scoreB = 0;
+	return 1; // everything ok
 }
-
 
 static int convert(int userInput) {
    int res;
@@ -46,7 +45,7 @@ static int convert(int userInput) {
    return res;
 }
 
-int nextArrayElem(int baseIndex) {
+static int nextArrayElem(int baseIndex) {
     if (baseIndex == 0) {
         return 6;
     } else if (baseIndex == 11) {
@@ -60,7 +59,34 @@ int nextArrayElem(int baseIndex) {
     }    
 }
 
-char playMove(const int *baseArray, int *outArray, int userInput) {
+static int previousArrayElem(int baseIndex) {
+    if (baseIndex == 6) {
+        return 0;
+    } else if (baseIndex == 5) {
+        return 11;
+    } else if (baseIndex < 6 && baseIndex > 0) {
+        return baseIndex + 1;
+    } else if (baseIndex < 12 && baseIndex > 5) {
+        return baseIndex - 1;
+    } else {
+        return -1;
+    }    
+}
+
+static int canTake(int *array, int index) {
+    if (array[index] == 2 || array[index] == 3)
+    {
+        const int value = array[index];
+        array[index] = 0;
+        return value;
+    }
+    return -1;
+}
+
+static int playMove(const int baseArray[], int outArray[], const int userInput) {
+	for (int i=0; i<12; i++) {
+		outArray[i] = baseArray[i];
+	}
 	int current = userInput;
     int valueToAdd = baseArray[current];
 
@@ -81,11 +107,24 @@ char playMove(const int *baseArray, int *outArray, int userInput) {
        debugd(outArray[i]);
     }
 
-    return 1;
+    return current; // return the position of the last seed
 }
 
+static int playMoveAndTake(const int *baseArray, int *outArray, int userInput) {
+	int current = playMove(baseArray,outArray,userInput);
 
-char nextPlayer(char player) {
+	int recuperedSeeds = 0;
+	int valueToGive = canTake(outArray, current);
+    while (valueToGive != -1) {
+        recuperedSeeds += valueToGive;
+        current = previousArrayElem(current);
+        valueToGive = canTake(outArray, current);
+    }
+    
+    return recuperedSeeds;
+}
+
+static char nextPlayer(char player) {
 	if ( player == 1 ) {
 		return 0;
 	} else if ( player == 2 ) {
@@ -95,7 +134,7 @@ char nextPlayer(char player) {
 	}
 }
 
-char empty(int board[12], char side) {
+static char empty(int board[12], char side) {
 	if ( side == 1 ) {
 		if ( ( 0 == board[6] ) &&
 				( 0 == board[7] ) &&
@@ -123,7 +162,7 @@ char empty(int board[12], char side) {
 	}
 }
 
-int sumSide(int board[12], char side) {
+static int sumSide(int board[12], char side) {
 	int sum = 0;
 	if ( side == 1 ) {
 		for (int i=6; i<12; i++) {
@@ -139,11 +178,11 @@ int sumSide(int board[12], char side) {
 	return sum;
 }
 
-int bestMove(int board[12], char player) {
+static int bestMove(int board[12], char player) {
 	int max = 0;
 	int iMax = -1;
 	for (int i=0; i<6; i++) {
-		playMoveAndTake(board,i+(player-1)*6); // play move 0..5 if player == 1 and move 6..11 if player == 2
+		playMoveAndTake(board,board,i+(player-1)*6); // play move 0..5 if player == 1 and move 6..11 if player == 2
 		if ( sumSide(board,nextPlayer(player)) > max ) {
 			max = sumSide(board,nextPlayer(player));
 			iMax = i+(player-1)*6;
@@ -153,10 +192,8 @@ int bestMove(int board[12], char player) {
 }
 
 
-char moveOkay(Game g, int move) {
-	int aScore;
-	int bScore;
-	playMoveAndTake(g.board, g.tmp, move, aScore, bScore);
+static char moveOkay(Game g, int move) {
+	playMoveAndTake(g.board, g.tmp, move);
 	// play move on board to tmp and take and put taking into score
 	if ( empty(g.board,nextPlayer(g.currentPlayer)) ) {
 		if ( move == bestMove(g.board, g.currentPlayer) ) {
@@ -181,20 +218,63 @@ char moveOkay(Game g, int move) {
 	}
 }
 
+static void show_board(const int board[]) {
+   printf("\n");
+   for (int i=12; i>9; i--) {
+      printf("  %d",i);
+   }
+   for (int i=9; i>6; i--) {
+      printf("  %d ",i);
+   }
+   printf("\n");
+   for (int i=0; i<6; i++)
+      printf(" ---");
+   printf("\n");
+   for (int i=0; i<6; i++) {
+      if (board[i] > 9) {
+         printf("|%d ",board[i]);
+      } else {
+         printf("| %d ",board[i]);
+      }
+   } printf("|\n");
+   for (int i=0; i<6; i++)
+      printf(" ---");
+   printf("\n");
+   for (int i=0; i<6; i++) {
+      if (board[i] > 9) {
+         printf("|%d ",board[i+6]);
+      } else {
+         printf("| %d ",board[i]);
+      }
+   } printf("|\n");
+   for (int i=0; i<6; i++)
+      printf(" ---");
+   printf("\n");
+   for (int i=0; i<6; i++) {
+      printf("  %d ",i+1);
+   }
+   printf("\n\n");
+}
+
 
 int main() {
 	Game g;
 	int humanMove;
 	int computerMove;
-	init(g);
-	while (!g.finished) {
-		showBoard(g.board);
+	init(&g);
+	debug("Here");
+	while ( g.finished == 0 ) {
+		show_board(g.board);
 		printf("Player %d",g.currentPlayer);
 		scanf(" move : %d",&humanMove);
-	    int computerMove = convert(humanMove);
+	    computerMove = convert(humanMove);
 		if (moveOkay(g,computerMove)) {
-			for (int i=0; i<12; i++) {
-				g.board[i] = g.tmp[i];
+			if ( g.currentPlayer == 1 ) {
+				g.scoreA += playMoveAndTake(g.board,g.board,computerMove);
+			} else if ( g.currentPlayer == 2 ) {
+				g.scoreB += playMoveAndTake(g.board,g.board,computerMove);
+			} else {
+				debug("current player pb");
 			}
 			if ( ( g.currentPlayer == 1 && g.scoreA > 24 ) || ( g.currentPlayer == 2 && g.scoreB > 24 ) ) {
 				// move that make you win
