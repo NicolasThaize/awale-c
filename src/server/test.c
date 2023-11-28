@@ -61,6 +61,7 @@ int process(const int *baseArray, int *outArray, int userInput) {
     }
     
     int correspondingArrayIndex = convert(userInput);
+    const int baseArrayIndex = correspondingArrayIndex;
 
     //printf("User input: %d, corresponding: %d \n", userInput, correspondingArrayIndex);
     
@@ -80,7 +81,10 @@ int process(const int *baseArray, int *outArray, int userInput) {
         correspondingArrayIndex = nextArrayElem(correspondingArrayIndex);
         
         //printf("Add 1 in case: %d ", correspondingArrayIndex);
-
+        if (correspondingArrayIndex == baseArrayIndex) {
+            i++;
+            continue;
+        }
         outArray[correspondingArrayIndex] = outArray[correspondingArrayIndex] + 1;
     }
 
