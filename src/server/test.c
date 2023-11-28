@@ -29,6 +29,30 @@ int nextArrayElem(int baseIndex) {
     }    
 }
 
+int previousArrayElem(int baseIndex) {
+    if (baseIndex == 6) {
+        return 0;
+    } else if (baseIndex == 5) {
+        return 11;
+    } else if (baseIndex < 6 && baseIndex > 0) {
+        return baseIndex + 1;
+    } else if (baseIndex < 12 && baseIndex > 5) {
+        return baseIndex - 1;
+    } else {
+        return -1;
+    }    
+}
+
+int checkPrendre(int *array, int index) {
+    if (array[index] == 2 || array[index] == 3)
+    {
+        const int value = array[index];
+        array[index] = 0;
+        return value;
+    }
+    return -1;
+}
+
 char process(const int *baseArray, int *outArray, int userInput) {
     for (int i = 0; i < 12; i++) {
         outArray[i] = baseArray[i];
@@ -50,14 +74,23 @@ char process(const int *baseArray, int *outArray, int userInput) {
 
 
     for (int i = valueToAdd; i > 0; i--) {
-        int indexToAddIn = nextArrayElem(correspondingArrayIndex);
         
-        //printf("Add 1 in case: %d ", indexToAddIn);
+        correspondingArrayIndex = nextArrayElem(correspondingArrayIndex);
         
-        outArray[indexToAddIn] = outArray[indexToAddIn] + 1;
-        correspondingArrayIndex = correspondingArrayIndex + 1;
+        //printf("Add 1 in case: %d ", correspondingArrayIndex);
+
+        outArray[correspondingArrayIndex] = outArray[correspondingArrayIndex] + 1;
     }
 
+    
+
+    int valueToGive = checkPrendre(outArray, correspondingArrayIndex);
+    while (valueToGive != -1) {
+        // TODO : Ajouter a joueur en cours la valeur de checkPrendre(outArray, correspondingArrayIndex)) si != -1    
+        correspondingArrayIndex = previousArrayElem(correspondingArrayIndex);
+        valueToGive = checkPrendre(outArray, correspondingArrayIndex);
+    }
+    
     //printf("\n New array : \n");
     //for(int i = 0; i < 12; i++) {
     //    printf("%d ", outArray[i]);
@@ -68,9 +101,9 @@ char process(const int *baseArray, int *outArray, int userInput) {
 
 
 int main() {
-    int baseArray[12] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+    int baseArray[12] = {4, 4, 4, 4, 1, 1, 4, 4, 4, 4, 4, 4};
     int outArray[12];
-    int userInput = 3;
+    int userInput = 4;
     
     // Process prend un tableau en entrée et une position (valeur input du joueur). Joue le coup et renvoie le tableau
     process(baseArray, outArray, userInput);
