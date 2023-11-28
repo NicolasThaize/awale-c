@@ -53,7 +53,9 @@ int checkPrendre(int *array, int index) {
     return -1;
 }
 
-char process(const int *baseArray, int *outArray, int userInput) {
+int process(const int *baseArray, int *outArray, int userInput) {
+    int grainesRecuperees = 0;
+    
     for (int i = 0; i < 12; i++) {
         outArray[i] = baseArray[i];
     }
@@ -86,7 +88,7 @@ char process(const int *baseArray, int *outArray, int userInput) {
 
     int valueToGive = checkPrendre(outArray, correspondingArrayIndex);
     while (valueToGive != -1) {
-        // TODO : Ajouter a joueur en cours la valeur de checkPrendre(outArray, correspondingArrayIndex)) si != -1    
+        grainesRecuperees = grainesRecuperees + valueToGive;
         correspondingArrayIndex = previousArrayElem(correspondingArrayIndex);
         valueToGive = checkPrendre(outArray, correspondingArrayIndex);
     }
@@ -96,7 +98,7 @@ char process(const int *baseArray, int *outArray, int userInput) {
     //    printf("%d ", outArray[i]);
     //}
 
-    return 1;
+    return grainesRecuperees;
 }
 
 
@@ -104,7 +106,11 @@ int main() {
     int baseArray[12] = {4, 4, 4, 4, 1, 1, 4, 4, 4, 4, 4, 4};
     int outArray[12];
     int userInput = 4;
+
+    int scoreA = 0;
+    int scoreB = 0;
+    char currentPlayer = 'B';
     
     // Process prend un tableau en entrée et une position (valeur input du joueur). Joue le coup et renvoie le tableau
-    process(baseArray, outArray, userInput);
+    printf("%d", process(baseArray, outArray, userInput));
 }
