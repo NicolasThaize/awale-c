@@ -17,12 +17,72 @@
 char generateFirstPlayer() {
     srand(time(NULL)); 
     int r = rand() % 2;
-    char currentJoueur[2] = {'A', 'B'};
+    char currentJoueur[2] = {1, 2}; // {'A', 'B'}
     return currentJoueur[r];
 }
 
 
-char init(int board[12]) {}
+char init(Game g) {
+	for (int i=0; i<12; i++) {
+		g.board[i] = 4;
+	}
+	g.currentPlayer = generateFirstPlayer();
+	g.finished = 0;
+	g.scoreA = 0;
+	g.scoreB = 0;
+}
+
+
+static int convert(int userInput) {
+   int res;
+   if ( userInput < 13 && userInput > 6 ) {
+      res = 12 - userInput;
+   } else if ( userInput > 0 && userInput < 7 ) {
+      res = userInput + 5;
+   }
+   else {
+      res = -1;
+   }
+   return res;
+}
+
+int nextArrayElem(int baseIndex) {
+    if (baseIndex == 0) {
+        return 6;
+    } else if (baseIndex == 11) {
+        return 5;
+    } else if (baseIndex < 6 && baseIndex > 0) {
+        return baseIndex - 1;
+    } else if (baseIndex < 12 && baseIndex > 5) {
+        return baseIndex + 1;
+    } else {
+        return -1;
+    }    
+}
+
+char playMove(const int *baseArray, int *outArray, int userInput) {
+	int current = userInput;
+    int valueToAdd = baseArray[current];
+
+    outArray[current] = 0;
+    //printf("\n Value to add: %d \n", valueToAdd);
+
+    for (int i = valueToAdd; i > 0; i--) {
+        int current = nextArrayElem(current);
+		if (current != userInput) {
+	        outArray[current]++;
+		} else {
+			i++; // skip case
+		}
+    }
+
+    //printf("\n New array : \n");
+    for(int i = 0; i < 12; i++) {
+       debugd(outArray[i]);
+    }
+
+    return 1;
+}
 
 
 char nextPlayer(char player) {
@@ -94,12 +154,15 @@ int bestMove(int board[12], char player) {
 
 
 char moveOkay(Game g, int move) {
-	g.tmp = playMoveAndTake(g.board, move);
-	if ( empty(g.board,nextPlayer(g.player)) ) {
-		if ( move == bestMove(g.board, g.player) ) {
+	int aScore;
+	int bScore;
+	playMoveAndTake(g.board, g.tmp, move, aScore, bScore);
+	// play move on board to tmp and take and put taking into score
+	if ( empty(g.board,nextPlayer(g.currentPlayer)) ) {
+		if ( move == bestMove(g.board, g.currentPlayer) ) {
 			// OK (move that give the most)
 			return 1;
-		} else if ( bestMove(g.board, g.player) == -1 ) {
+		} else if ( bestMove(g.board, g.currentPlayer) == -1 ) {
 			// no moves that give pieces => player win
 			return 2; // normally this case no append
 		} else {
@@ -107,9 +170,9 @@ char moveOkay(Game g, int move) {
 			return 0;
 		}
 	} else {
-		if ( empty(g.tmp,nextPlayer(g.player)) ) {
+		if ( empty(g.tmp,nextPlayer(g.currentPlayer)) ) {
 			// OK (could take everything so take nothing)
-			g.tmp = playMove(g.board, move); // do not take
+			playMove(g.board, g.tmp, move); // play move on board to tmp
 			return 1;
 		} else {
 			// OK
@@ -121,29 +184,39 @@ char moveOkay(Game g, int move) {
 
 int main() {
 	Game g;
-	int move;
+	int humanMove;
+	int computerMove;
 	init(g);
 	while (!g.finished) {
 		showBoard(g.board);
-		printf("Player %d",g.player);
-		scanf(" move : %d",&move);
-		if (moveOkay(g,move)) {
-			g.board = g.tmp;
-			g.player = nextPlayer(g.player);
-			if ( empty(g.board,nextPlayer(g.player)) && bestMove(g.board, g.player) == -1 ) // move that make you loose
-			{
-				g.finished = 1;
-				printf("Player %d win !\n",g.player);
+		printf("Player %d",g.currentPlayer);
+		scanf(" move : %d",&humanMove);
+	    int computerMove = convert(humanMove);
+		if (moveOkay(g,computerMove)) {
+			for (int i=0; i<12; i++) {
+				g.board[i] = g.tmp[i];
 			}
-		} else if ( moveOkay(g,move) == 1 ) {
+			if ( ( g.currentPlayer == 1 && g.scoreA > 24 ) || ( g.currentPlayer == 2 && g.scoreB > 24 ) ) {
+				// move that make you win
+				g.finished = 1;
+				printf("Player %d win !\n",g.currentPlayer);
+			}
+			g.currentPlayer = nextPlayer(g.currentPlayer);
+			if ( empty(g.board,nextPlayer(g.currentPlayer)) && bestMove(g.board, g.currentPlayer) == -1 ) {
+				// move that make you loose
+				g.finished = 1;
+				printf("Player %d win !\n",g.currentPlayer);
+			}
+		} else if ( moveOkay(g,computerMove) == 1 ) {
 			printf("Forced move : you have to use the move that give the most to the opponent\n");
-		} else if ( moveOkay(g,move) == 2 ) {
+		} else if ( moveOkay(g,computerMove) == 2 ) {
 			printf("It appear that you have win\n");
 		} else {
 			printf("There is an error\n");
 		}
 	}
 }
+
 
 
 

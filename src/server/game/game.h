@@ -8,8 +8,11 @@ typedef struct
 	int board[12];
 	int tmp[12];
 	Client* playerA;
+	int scoreA;
 	Client* playerB;
+	int scoreB;
 	char currentPlayer;
+	char finished;
 } Game;
 
 
