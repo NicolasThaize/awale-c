@@ -42,10 +42,10 @@ static void app(void) {
    int max = sock;
    /* an array for all clients */
    Client diffusionChatGlobal[MAX_CLIENTS];
-   char diffusionMainMenu[MAX_CLIENTS]; // identifiant client (max 255)
-   char diffusionUsersList[MAX_CLIENTS];
-   char diffusionGamesList[MAX_CLIENTS];
-   char diffusionGames[MAX_GAMES][MAX_CLIENTS];
+   int diffusionMainMenu[MAX_CLIENTS]; // identifiant client (max 255)
+   int diffusionUsersList[MAX_CLIENTS];
+   int diffusionGamesList[MAX_CLIENTS];
+   int diffusionGames[MAX_GAMES][MAX_CLIENTS];
 
    fd_set rdfs;
 
