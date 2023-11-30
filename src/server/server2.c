@@ -39,6 +39,7 @@ static void end(void) {
 static void app(void) {
    SOCKET sock = init_connection();
    char buffer[BUF_SIZE];
+   char buffer[BUF_SIZE];
    /* the index for the array */
    int nbClients = 0;
    int max = sock;
@@ -123,7 +124,7 @@ static void app(void) {
                   // Client* diffusion;
                   if ( buffer[0] == '/' ) {
                      switch (buffer[1]) {
-                     case 'y':
+                     case 'y': // yes
                         // int id = 1; // find method for unique game
                         // diffusion = diffusionGames[id];
                         // diffusion[0] = client;
@@ -131,22 +132,30 @@ static void app(void) {
                         // diffusion[1] = find_client(listAllClients, nbClients, buffer+3); // find the name
                         // diffusion[1].state = 'p';
                         // sprintf(buffer, "%s use /yes", client.name);
-                        find_client(listAllClients,nbClients,buffer+3);
+
+                        // find_client(listAllClients,nbClients,buffer+3);
                         
-                        strncpy(buffer, client.name, BUF_SIZE-1);
-                        strncat(buffer, " use /y", sizeof buffer - strlen(buffer)-1);
+                        // strncpy(buffer, client.name, BUF_SIZE-1);
+                        // strncat(buffer, " use /y", sizeof buffer - strlen(buffer)-1);
+                        char name[SMALL_SIZE];
+                        if (sscanf(buffer, "/%1[yn] %s", command, name) == 2) {
+                           printf("Command: %s, Name: %s\n", command, name);
+                        }
                         break;
-                     case 'n':
+                     case 'n': // no
                         // diffusion = diffusionMainMenu;
                         // sprintf(buffer, "%s use /no", client.name);
                         strncpy(buffer, client.name, BUF_SIZE-1);
                         strncat(buffer, " use /n", sizeof buffer - strlen(buffer)-1);
                         break;
-                     case 'c':
+                     case 'c': // chat
                         // diffusion = listAllClients;
-                        sprintf(buffer, buffer+3); // escape "/m "
+                        // sprintf(buffer, buffer+3); // escape "/m "
+                        if (sscanf(buffer, "/c %[^\n]", buffer) == 1) {
+                           printf("Remaining: %s\n", buffer);
+                        }
                         break;
-                     case 'q':
+                     case 'q': // quit
                         //write_client(client.sock, "You just disconnected from server");
                         //if (FD_ISSET(client.sock, &rdfs)) {
                         //   printf("Bazouzou");
@@ -155,6 +164,10 @@ static void app(void) {
                         //printf("Bazouzou2");
                         //close(client.sock);
                         //printf("Bazouzou");
+                        break;
+                     case 'h': // help
+                        break;
+                     case 'a': // abandon
                         break;
                      default:
                         // diffusion = listAllClients;

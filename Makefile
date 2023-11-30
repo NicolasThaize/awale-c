@@ -12,6 +12,13 @@ BDIR_CLIENT = build/client/
 OBJ_CLIENT = $(HEADERS_CLIENT:src/client/%.h=$(BDIR_CLIENT)%.o)
 DEPS_CLIENT = $(HEADERS_CLIENT:src/client/%.h=$(BDIR_CLIENT)%.d)
 
+EXE_TEST = bin/test/main.out
+SRC_TEST = $(wildcard test/*.cpp)
+HEADERS_TEST = $(wildcard test/*.h)
+BDIR_TEST = build/test/
+OBJ_TEST = $(HEADERS_TEST:test/%.h=$(BDIR_TEST)%.o)
+DEPS_TEST = $(HEADERS_TEST:test/%.h=$(BDIR_TEST)%.d)
+
 FLAG_DEBUG = -DMAP -DTRACE -ggdb -Wall# -Wextra -Werror# -ansi -Og# -fsanitize=address -fno-omit-frame-pointer
 FLAG_FINAL = -pedantic -Wall -Wextra -Werror -DNDEBUG -O3
 LIBS = 
@@ -58,6 +65,20 @@ $(BDIR_CLIENT)%.d : src/client/%.c # dependances
 	$(CXX) $(FLAG_DEBUG) -MMD -c $< -o $@ $(LIBS)
 
 $(BDIR_CLIENT)%.o : src/client/%.c $(DEPS_CLIENT) # compilation
+	$(CXX) $(FLAG_DEBUG) -c $< -o $@ $(LIBS)
+
+# --------------------  -------------------- #
+
+.PHONY:test
+test : $(EXE_TEST) ## (defaut) compile le client debug
+
+$(EXE_TEST) : $(OBJ_TEST) # linkage $(EXE)
+	$(CXX) $(FLAG_DEBUG) -o $@ $^ $(LIBS)
+
+$(BDIR_TEST)%.d : test/%.c # dependances
+	$(CXX) $(FLAG_DEBUG) -MMD -c $< -o $@ $(LIBS)
+
+$(BDIR_TEST)%.o : test/%.c $(DEPS_TEST) # compilation
 	$(CXX) $(FLAG_DEBUG) -c $< -o $@ $(LIBS)
 
 # --------------------  -------------------- #

@@ -34,6 +34,7 @@ typedef struct in_addr IN_ADDR;
 #define MAX_GAMES	500
 
 #define BUF_SIZE    1024
+#define SMALL_SIZE	32
 
 #include "client2.h"
 
