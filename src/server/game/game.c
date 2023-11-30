@@ -90,12 +90,10 @@ static int getPositionSide(int input) {
 }
 
 static int canTake(int *array, int index, int userInput) {
-	if (getPositionSide(index) == getPositionSide(userInput))
-	{
+	if (getPositionSide(index) == getPositionSide(userInput)) {
 		return -1;
 	}
 	
-
     if (array[index] == 2 || array[index] == 3) {
         const int value = array[index];
         array[index] = 0;

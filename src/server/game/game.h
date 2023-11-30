@@ -7,11 +7,12 @@ typedef struct
 {
 	int board[12];
 	int tmp[12];
-	// Client* playerA;
+	int challenger; // playerA
 	int scoreA;
-	// Client* playerB;
+	int challenged; // playerB
 	int scoreB;
 	char currentPlayer;
+	char active; // 0 for pending, 1 for playing
 	char finished;
 } Game;
 
@@ -21,7 +22,7 @@ static char init();
 static int convert(int userInput);
 static int nextArrayElem(int baseIndex);
 static int previousArrayElem(int baseIndex);
-static int canTake(int *array, int index);
+static int canTake(int *array, int index, int userInput);
 static int playMove(const int baseArray[], int outArray[], const int userInput);
 static int playMoveAndTake(const int *baseArray, int *outArray, int userInput);
 static char nextPlayer(char player);

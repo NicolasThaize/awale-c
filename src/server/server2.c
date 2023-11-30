@@ -178,36 +178,29 @@ static void app(void) {
                   if ( buffer[0] == '/' ) {
                      switch (buffer[1]) {
                      case 'y': // yes
-                        // int id = 1; // find method for unique game
-                        // diffusion = diffusionGames[id];
-                        // diffusion[0] = client;
-                        // diffusion[0].state = 'p';
-                        // diffusion[1] = find_client(listAllClients, nbClients, buffer+3); // find the name
-                        // diffusion[1].state = 'p';
-                        // sprintf(buffer, "%s use /yes", client.name);
-
-                        // find_client(listAllClients,nbClients,buffer+3);
-                        
-                        // strncpy(buffer, client.name, BUF_SIZE-1);
-                        // strncat(buffer, " use /y", sizeof buffer - strlen(buffer)-1);
                         if (sscanf(buffer, "/y %s", name) == 1) {
                            printf("Name: %s\n", name);
+                           // find the corresponding game
+                           // change active attribute of game to 1
+                        } else {
+                           debug("Problem sscanf");
                         }
                         break;
                      case 'n': // no
-                        // diffusion = diffusionMainMenu;
-                        // sprintf(buffer, "%s use /no", client.name);
-                        // strncpy(buffer, client.name, BUF_SIZE-1);
-                        // strncat(buffer, " use /n", sizeof buffer - strlen(buffer)-1);
                         if (sscanf(buffer, "/n %s", name) == 1) {
                            printf("Name: %s\n", name);
+                           // find the corresponding game
+                           // remove it from the list
+                        } else {
+                           debug("Problem sscanf");
                         }
                         break;
                      case 'c': // chat
-                        // diffusion = listAllClients;
-                        // sprintf(buffer, buffer+3); // escape "/m "
                         if (sscanf(buffer, "/c %[^\n]", buffer) == 1) {
                            printf("Remaining: %s\n", buffer);
+                           send_message_to_all_clients(listAllClients, client, nbClients, buffer, 0);
+                        } else {
+                           debug("Problem sscanf");
                         }
                         break;
                      case 'q': // quit
@@ -239,37 +232,36 @@ static void app(void) {
                      }
                   } else if (sscanf(buffer, "%d", &number) == 1) {
                      printf("Number: %d\n", number);
-                     debugd(input);
+                     debugd(number);
                      switch (client.state) {
-                     case MAIN_MENU:
-                        if (input == 0) {
-                           // quit
-                        } else if (input == 1) {
-                           // play
-                        } else if (input == 2) {
-                           showGameList(client);
-                           switchDiffusion(client.state,GAME_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
-                        } else {
-                           debug("Bad input from main menu");
-                        }
-                     case USER_LIST:
-                        select_user(client,input);
-                        break;
-                     case GAME_LIST:
-                        select_game(client,input);
-                        break;
-                     case GAME:
-                        // test if the player is in a game and get the game
-                        play(client,input); // to implement (arguments surely missing)
-                        break;
-                     default:
-                        debugc(client.state);
-                        break;
+                        case MAIN_MENU:
+                           if (number == 0) {
+                              // quit
+                           } else if (number == 1) {
+                              // play
+                           } else if (number == 2) {
+                              showGameList(client);
+                              switchDiffusion(client.state,GAME_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
+                           } else {
+                              debug("Bad number from main menu");
+                           }
+                        case USER_LIST:
+                           select_user(client,number);
+                           break;
+                        case GAME_LIST:
+                           select_game(client,number);
+                           break;
+                        case GAME:
+                           // test if the player is in a game and get the game
+                           play(client,number); // to implement (arguments surely missing)
+                           break;
+                        default:
+                           debugc(client.state);
+                           break;
                      }
                   } else {
                      debug("Problem !!");
                   }
-                  send_message_to_all_clients(listAllClients, client, nbClients, buffer, 0);
                }
                break;
             }
