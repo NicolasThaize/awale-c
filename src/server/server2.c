@@ -5,7 +5,6 @@
 
 #include "server2.h"
 #include "client2.h"
-#include <sys/_types/_fd_clr.h>
 
 #ifdef TRACE
 #define debug(expression) (printf("%s:%d -> " #expression "\n",__FILE__,__LINE__))
