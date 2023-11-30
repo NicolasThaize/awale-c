@@ -40,6 +40,7 @@ typedef struct in_addr IN_ADDR;
 #define USER_LIST 'u'
 #define GAME_LIST 'g'
 #define GAME 'p'
+#define SMALL_SIZE	32
 
 #include "client2.h"
 
