@@ -34,6 +34,12 @@ typedef struct in_addr IN_ADDR;
 #define MAX_GAMES	500
 
 #define BUF_SIZE    1024
+#define IMPOSSIBLE_ID -1
+
+#define MAIN_MENU 'm'
+#define USER_LIST 'u'
+#define GAME_LIST 'g'
+#define GAME 'p'
 #define SMALL_SIZE	32
 
 #include "client2.h"
@@ -41,6 +47,9 @@ typedef struct in_addr IN_ADDR;
 static void init(void);
 static void end(void);
 static void app(void);
+static void switchDiffusion(char from, char to, int socketId, int subscribedGame, int *diffusionMainMenu, int *diffusionUsersList, int *diffusionGamesList, int *diffusionGames);
+static void subscribeToDiffusion(int *diffusion, int max_size, int socketId);
+static void unsubscribeFromDiffusion(int *diffusion, int max_size, int socketId);
 static int init_connection(void);
 static void end_connection(int sock);
 static int read_client(SOCKET sock, char *buffer);
