@@ -39,7 +39,8 @@ static void end(void) {
 static void app(void) {
    SOCKET sock = init_connection();
    char buffer[BUF_SIZE];
-   char buffer[BUF_SIZE];
+   char name[SMALL_SIZE];
+   int number;
    /* the index for the array */
    int nbClients = 0;
    int max = sock;
@@ -137,16 +138,18 @@ static void app(void) {
                         
                         // strncpy(buffer, client.name, BUF_SIZE-1);
                         // strncat(buffer, " use /y", sizeof buffer - strlen(buffer)-1);
-                        char name[SMALL_SIZE];
-                        if (sscanf(buffer, "/%1[yn] %s", command, name) == 2) {
-                           printf("Command: %s, Name: %s\n", command, name);
+                        if (sscanf(buffer, "/y %s", name) == 1) {
+                           printf("Name: %s\n", name);
                         }
                         break;
                      case 'n': // no
                         // diffusion = diffusionMainMenu;
                         // sprintf(buffer, "%s use /no", client.name);
-                        strncpy(buffer, client.name, BUF_SIZE-1);
-                        strncat(buffer, " use /n", sizeof buffer - strlen(buffer)-1);
+                        // strncpy(buffer, client.name, BUF_SIZE-1);
+                        // strncat(buffer, " use /n", sizeof buffer - strlen(buffer)-1);
+                        if (sscanf(buffer, "/n %s", name) == 1) {
+                           printf("Name: %s\n", name);
+                        }
                         break;
                      case 'c': // chat
                         // diffusion = listAllClients;
@@ -163,9 +166,10 @@ static void app(void) {
                         //}
                         //printf("Bazouzou2");
                         //close(client.sock);
-                        //printf("Bazouzou");
+                        printf("Bazou");
                         break;
                      case 'h': // help
+                        showHelp();
                         break;
                      case 'a': // abandon
                         break;
@@ -176,9 +180,11 @@ static void app(void) {
                         strncat(buffer, " use unknown / command", sizeof buffer - strlen(buffer)-1);
                         break;
                      }
-                  } else if ( buffer[0]-'0' >= 0 && buffer[0]-'0' <= 9 ) { // c'est un nombre
-                     debugd(atoi(buffer));
-                     action(client,atoi(buffer));
+                  } else if (sscanf(buffer, "%d", &number) == 1) {
+                     printf("Number: %d\n", number);
+                     // action(client,atoi(buffer));
+                  } else {
+                     debug("Problem !!");
                   }
                   send_message_to_all_clients(listAllClients, client, nbClients, buffer, 0);
                }
@@ -190,6 +196,16 @@ static void app(void) {
 
    clear_clients(listAllClients, nbClients);
    end_connection(sock);
+}
+
+void showHelp() {
+   printf("/h\t\t\tshow this help\n");
+   printf("/c {message}\tsend your message\n");
+   printf("/y {player}\taccept challenge of the player {player}\n");
+   printf("/n {player}\trefuse challenge of the player {player}\n");
+   printf("/a\t\t\tgive up the game\n");
+   printf("/q\t\t\tgo back the previous menu (don't abandon in game)\n");
+   printf("{N}\t\t\texecute the action number {N}\n");
 }
 
 Client getClient(int id, Client allClients[], int nbClients) {
