@@ -159,19 +159,24 @@ static void app(void) {
                         }
                         break;
                      case 'q': // quit
-                        //write_client(client.sock, "You just disconnected from server");
-                        //if (FD_ISSET(client.sock, &rdfs)) {
-                        //   printf("Bazouzou");
-                        //   FD_CLR(client.sock, &rdfs);
-                        //}
-                        //printf("Bazouzou2");
-                        //close(client.sock);
+                        // write_client(client.sock, "You just disconnected from server");
+                        // if (FD_ISSET(client.sock, &rdfs)) {
+                        //    printf("Bazouzou");
+                        //    FD_CLR(client.sock, &rdfs);
+                        // }
+                        // printf("Bazouzou2");
                         printf("Bazou");
+                        if (client.state == 'm') {
+                           close(client.sock);
+                        } else {
+                           switchDiffusion(client.state,MAIN_MENU,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
+                        }
                         break;
                      case 'h': // help
                         showHelp();
                         break;
                      case 'a': // abandon
+                        if (client.state == GAME)
                         break;
                      default:
                         // diffusion = listAllClients;
@@ -182,7 +187,33 @@ static void app(void) {
                      }
                   } else if (sscanf(buffer, "%d", &number) == 1) {
                      printf("Number: %d\n", number);
-                     // action(client,atoi(buffer));
+                     debugd(input);
+                     switch (client.state) {
+                     case MAIN_MENU:
+                        if (input == 0) {
+                           // quit
+                        } else if (input == 1) {
+                           // play
+                        } else if (input == 2) {
+                           showGameList(client);
+                           switchDiffusion(client.state,GAME_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
+                        } else {
+                           debug("Bad input from main menu");
+                        }
+                     case USER_LIST:
+                        select_user(client,input);
+                        break;
+                     case GAME_LIST:
+                        select_game(client,input);
+                        break;
+                     case GAME:
+                        // test if the player is in a game and get the game
+                        play(client,input); // to implement (arguments surely missing)
+                        break;
+                     default:
+                        debugc(client.state);
+                        break;
+                     }
                   } else {
                      debug("Problem !!");
                   }
@@ -218,77 +249,68 @@ Client getClient(int id, Client allClients[], int nbClients) {
    // find smth to return
 }
 
-static void action(Client client, int input) {
-   debugd(input);
-   switch (client.state) {
-   case 'u':
-      select_user(client,input);
-      break;
-   case 'g':
-      select_game(client,input);
-      break;
-   case 'p':
-      play(client,input);
-      break;
-   default:
-      play(client,input);
-      debugc(client.state);
-      break;
-   }
-}
-
 static void select_user(Client client, int input) {
    printf("Nothing for now\n");
 }
 static void select_game(Client client, int input) {
    printf("Nothing for now\n");
 }
-static void play(Client client, int input) {
-   char board[12] = {6,5,4,0,0,6,6,1,0,7,7,6}; // int sur 1 octet
-   show_board(board);
-   char aa;
-   scanf("select case : %c", &aa);
-   printf("You have selected ");
-   printf("%c",convert(aa));
+static void showUserList(Client client) {
+   printf("Nothing for now\n");
+}
+static void showGameList(Client client) {
+   printf("Nothing for now\n");
 }
 
-static void show_board(const char* board) {
-   printf("\n");
-   for (int i=12; i>9; i--) {
-      printf("  %d",i);
-   }
-   for (int i=9; i>6; i--) {
-      printf("  %d ",i);
-   }
-   printf("\n");
-   for (int i=0; i<6; i++)
-      printf(" ---");
-   printf("\n");
-   for (int i=0; i<6; i++) {
-      if (board[i] > 9) {
-         printf("|%d ",board[i]);
-      } else {
-         printf("| %d ",board[i]);
-      }
-   } printf("|\n");
-   for (int i=0; i<6; i++)
-      printf(" ---");
-   printf("\n");
-   for (int i=0; i<6; i++) {
-      if (board[i] > 9) {
-         printf("|%d ",board[i+6]);
-      } else {
-         printf("| %d ",board[i]);
-      }
-   } printf("|\n");
-   for (int i=0; i<6; i++)
-      printf(" ---");
-   printf("\n");
-   for (int i=0; i<6; i++) {
-      printf("  %d ",i+1);
-   }
-   printf("\n\n");
+
+static void play(Client client, int input) {
+   // char board[12] = {6,5,4,0,0,6,6,1,0,7,7,6}; // int sur 1 octet
+   // show_board(board);
+   // char aa;
+   // scanf("select case : %c", &aa);
+   // printf("You have selected ");
+   // printf("%c",convert(aa));
+
+   // to do
 }
+
+// static void show_board(const char* board) {
+//    printf("\n");
+//    for (int i=12; i>9; i--) {
+//       printf("  %d",i);
+//    }
+//    for (int i=9; i>6; i--) {
+//       printf("  %d ",i);
+//    }
+//    printf("\n");
+//    for (int i=0; i<6; i++)
+//       printf(" ---");
+//    printf("\n");
+//    for (int i=0; i<6; i++) {
+//       if (board[i] > 9) {
+//          printf("|%d ",board[i]);
+//       } else {
+//          printf("| %d ",board[i]);
+//       }
+//    } printf("|\n");
+//    for (int i=0; i<6; i++)
+//       printf(" ---");
+//    printf("\n");
+//    for (int i=0; i<6; i++) {
+//       if (board[i] > 9) {
+//          printf("|%d ",board[i+6]);
+//       } else {
+//          printf("| %d ",board[i]);
+//       }
+//    } printf("|\n");
+//    for (int i=0; i<6; i++)
+//       printf(" ---");
+//    printf("\n");
+//    for (int i=0; i<6; i++) {
+//       printf("  %d ",i+1);
+//    }
+//    printf("\n\n");
+// }
 
 static char convert(char userInput) {
    char res;

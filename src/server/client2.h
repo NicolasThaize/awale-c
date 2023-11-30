@@ -8,6 +8,7 @@ typedef struct {
    char name[SMALL_SIZE];
    char state; // m : main menu, u : user list, g : game list, p : playing
    char description[BUF_SIZE];
+   int subscribedGame;
 } Client;
 
 #endif /* guard */
