@@ -141,14 +141,14 @@ static void app(void) {
                         sprintf(buffer, buffer+3); // escape "/m "
                         break;
                      case 'q':
-                        write_client(client.sock, "You just disconnected from server");
-                        if (FD_ISSET(client.sock, &rdfs)) {
-                           printf("Bazouzou");
-                           FD_CLR(client.sock, &rdfs);
-                        }
-                        printf("Bazouzou2");
-                        close(client.sock);
-                        printf("Bazouzou3");
+                        //write_client(client.sock, "You just disconnected from server");
+                        //if (FD_ISSET(client.sock, &rdfs)) {
+                        //   printf("Bazouzou");
+                        //   FD_CLR(client.sock, &rdfs);
+                        //}
+                        //printf("Bazouzou2");
+                        //close(client.sock);
+                        //printf("Bazouzou");
                         break;
                      default:
                         // diffusion = diffusionChatGlobal;
