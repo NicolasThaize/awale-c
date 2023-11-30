@@ -41,8 +41,8 @@ static void app(void) {
    int nbClients = 0;
    int max = sock;
    /* an array for all clients */
-   Client diffusionChatGlobal[MAX_CLIENTS];
-   int diffusionMainMenu[MAX_CLIENTS]; // identifiant client (max 255)
+   Client listAllClients[MAX_CLIENTS]; // listAllClients
+   int diffusionMainMenu[MAX_CLIENTS]; // identifiant client
    int diffusionUsersList[MAX_CLIENTS];
    int diffusionGamesList[MAX_CLIENTS];
    int diffusionGames[MAX_GAMES][MAX_CLIENTS];
@@ -61,7 +61,7 @@ static void app(void) {
 
       /* add socket of each client */
       for (i = 0; i < nbClients; i++) {
-         FD_SET(diffusionChatGlobal[i].sock, &rdfs);
+         FD_SET(listAllClients[i].sock, &rdfs);
       }
 
       if(select(max + 1, &rdfs, NULL, NULL, NULL) == -1) {
@@ -96,21 +96,21 @@ static void app(void) {
 
          Client c = { csock };
          strncpy(c.name, buffer, BUF_SIZE - 1);
-         diffusionChatGlobal[nbClients] = c;
+         listAllClients[nbClients] = c;
          nbClients++;
       } else {
          for (int i=0; i<nbClients; i++) {
             /* a client is talking */
-            if ( FD_ISSET(diffusionChatGlobal[i].sock, &rdfs) ) {
-               Client client = diffusionChatGlobal[i];
-               int c = read_client(diffusionChatGlobal[i].sock, buffer);
+            if ( FD_ISSET(listAllClients[i].sock, &rdfs) ) {
+               Client client = listAllClients[i];
+               int c = read_client(listAllClients[i].sock, buffer);
                /* client disconnected */
                if (c == 0) {
-                  closesocket(diffusionChatGlobal[i].sock);
-                  remove_client(diffusionChatGlobal, i, &nbClients);
+                  closesocket(listAllClients[i].sock);
+                  remove_client(listAllClients, i, &nbClients);
                   strncpy(buffer, client.name, BUF_SIZE - 1);
                   strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
-                  send_message_to_all_clients(diffusionChatGlobal, client, nbClients, buffer, 1);
+                  send_message_to_all_clients(listAllClients, client, nbClients, buffer, 1);
                }
                else {
                   // Client* diffusion;
@@ -121,10 +121,10 @@ static void app(void) {
                         // diffusion = diffusionGames[id];
                         // diffusion[0] = client;
                         // diffusion[0].state = 'p';
-                        // diffusion[1] = find_client(diffusionChatGlobal, nbClients, buffer+3); // find the name
+                        // diffusion[1] = find_client(listAllClients, nbClients, buffer+3); // find the name
                         // diffusion[1].state = 'p';
                         // sprintf(buffer, "%s use /yes", client.name);
-                        find_client(diffusionChatGlobal,nbClients,buffer+3);
+                        find_client(listAllClients,nbClients,buffer+3);
                         
                         strncpy(buffer, client.name, BUF_SIZE-1);
                         strncat(buffer, " use /y", sizeof buffer - strlen(buffer)-1);
@@ -136,7 +136,7 @@ static void app(void) {
                         strncat(buffer, " use /n", sizeof buffer - strlen(buffer)-1);
                         break;
                      case 'c':
-                        // diffusion = diffusionChatGlobal;
+                        // diffusion = listAllClients;
                         sprintf(buffer, buffer+3); // escape "/m "
                         break;
                      case 'q':
@@ -150,7 +150,7 @@ static void app(void) {
                         //printf("Bazouzou");
                         break;
                      default:
-                        // diffusion = diffusionChatGlobal;
+                        // diffusion = listAllClients;
                         // sprintf(buffer, "%s use unknown / command", client.name);
                         strncpy(buffer, client.name, BUF_SIZE-1);
                         strncat(buffer, " use unknown / command", sizeof buffer - strlen(buffer)-1);
@@ -160,7 +160,7 @@ static void app(void) {
                      debugd(atoi(buffer));
                      action(client,atoi(buffer));
                   }
-                  send_message_to_all_clients(diffusionChatGlobal, client, nbClients, buffer, 0);
+                  send_message_to_all_clients(listAllClients, client, nbClients, buffer, 0);
                }
                break;
             }
@@ -168,7 +168,7 @@ static void app(void) {
       }
    }
 
-   clear_clients(diffusionChatGlobal, nbClients);
+   clear_clients(listAllClients, nbClients);
    end_connection(sock);
 }
 
