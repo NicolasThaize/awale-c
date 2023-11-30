@@ -6,7 +6,6 @@
 #include "server2.h"
 #include "client2.h"
 #include "challenge.h"
-#include "list/list.h"
 
 #ifdef TRACE
 #define debug(expression) (printf("%s:%d -> " #expression "\n",__FILE__,__LINE__))
@@ -36,6 +35,63 @@ static void end(void) {
 #endif
 }
 
+static void unsubscribeFromDiffusion(int *diffusion, int max_size, int socketId) {
+   for(int i = 0;  i < max_size; i++){
+      if (diffusion[i] == socketId) {
+         diffusion[i] = IMPOSSIBLE_ID;
+         return;
+      }
+   }
+}
+
+static void subscribeToDiffusion(int *diffusion, int max_size, int socketId) {
+   for(int i = 0;  i < max_size; i++){
+      if (diffusion[i] == IMPOSSIBLE_ID) {
+         diffusion[i] = socketId;
+         return;
+      }
+   }
+ }
+
+
+static void switchDiffusion(char from, char to, int socketId, int subscribedGame, int *diffusionMainMenu, int *diffusionUsersList, int *diffusionGamesList, int *diffusionGames) {
+   switch (from) {
+      case MAIN_MENU:
+         unsubscribeFromDiffusion(diffusionMainMenu, MAX_CLIENTS, socketId);
+         break;
+      case USER_LIST:
+         unsubscribeFromDiffusion(diffusionUsersList, MAX_CLIENTS, socketId);
+         break;
+      case GAME_LIST:
+         unsubscribeFromDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
+         break;
+      case GAME:
+         unsubscribeFromDiffusion(diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
+         break;
+      
+      default:
+         break;
+   }
+
+   switch (to){
+   case MAIN_MENU:
+         subscribeToDiffusion(diffusionMainMenu, MAX_CLIENTS, socketId);
+         break;
+      case USER_LIST:
+         subscribeToDiffusion(diffusionUsersList, MAX_CLIENTS, socketId);
+         break;
+      case GAME_LIST:
+         subscribeToDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
+         break;
+      case GAME:
+         subscribeToDiffusion(diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
+         break;
+      
+      default:
+         break;
+   }
+}
+
 static void app(void) {
    SOCKET sock = init_connection();
    char buffer[BUF_SIZE];
@@ -44,14 +100,10 @@ static void app(void) {
    int max = sock;
    /* an array for all clients */
    Client listAllClients[MAX_CLIENTS]; // listAllClients
-   // int diffusionMainMenu[MAX_CLIENTS]; // identifiant client
-   // int diffusionUsersList[MAX_CLIENTS];
-   // int diffusionGamesList[MAX_CLIENTS];
-   // int diffusionGames[MAX_GAMES][MAX_CLIENTS];
-   List diffusionMainMenu[MAX_CLIENTS]; // identifiant client
-   List diffusionUsersList[MAX_CLIENTS];
-   List diffusionGamesList[MAX_CLIENTS];
-   List diffusionGames[MAX_GAMES][MAX_CLIENTS];
+   int diffusionMainMenu[MAX_CLIENTS] = { [0 ... MAX_CLIENTS-1] = IMPOSSIBLE_ID }; // identifiant client
+   int diffusionUsersList[MAX_CLIENTS] = { [0 ... MAX_CLIENTS-1] = IMPOSSIBLE_ID };
+   int diffusionGamesList[MAX_CLIENTS] = { [0 ... MAX_CLIENTS-1] = IMPOSSIBLE_ID };
+   int diffusionGames[MAX_GAMES][MAX_CLIENTS] = { [0 ... MAX_GAMES-1] = { [0 ... MAX_CLIENTS-1] = IMPOSSIBLE_ID } };
    Challenge listOfChallenges[MAX_GAMES];
 
    fd_set rdfs;
