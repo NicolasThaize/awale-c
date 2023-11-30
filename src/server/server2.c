@@ -5,6 +5,8 @@
 
 #include "server2.h"
 #include "client2.h"
+#include "challenge.h"
+#include "list/list.h"
 
 #ifdef TRACE
 #define debug(expression) (printf("%s:%d -> " #expression "\n",__FILE__,__LINE__))
@@ -42,10 +44,15 @@ static void app(void) {
    int max = sock;
    /* an array for all clients */
    Client listAllClients[MAX_CLIENTS]; // listAllClients
-   int diffusionMainMenu[MAX_CLIENTS]; // identifiant client
-   int diffusionUsersList[MAX_CLIENTS];
-   int diffusionGamesList[MAX_CLIENTS];
-   int diffusionGames[MAX_GAMES][MAX_CLIENTS];
+   // int diffusionMainMenu[MAX_CLIENTS]; // identifiant client
+   // int diffusionUsersList[MAX_CLIENTS];
+   // int diffusionGamesList[MAX_CLIENTS];
+   // int diffusionGames[MAX_GAMES][MAX_CLIENTS];
+   List diffusionMainMenu[MAX_CLIENTS]; // identifiant client
+   List diffusionUsersList[MAX_CLIENTS];
+   List diffusionGamesList[MAX_CLIENTS];
+   List diffusionGames[MAX_GAMES][MAX_CLIENTS];
+   Challenge listOfChallenges[MAX_GAMES];
 
    fd_set rdfs;
 
