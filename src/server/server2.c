@@ -218,7 +218,7 @@ static void app(void) {
                         }
                         break;
                      case 'h': // help
-                        showHelp();
+                        showHelp(client);
                         break;
                      case 'a': // abandon
                         if (client.state == GAME)
