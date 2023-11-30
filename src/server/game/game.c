@@ -77,7 +77,25 @@ static int previousArrayElem(int baseIndex) {
     }    
 }
 
-static int canTake(int *array, int index) {
+static int getPositionSide(int input) {
+	if (input >= 0 && input <=5) {
+		return 2;
+	} else if (input >=6 && input <= 11) {
+		return 1;
+	} else {
+		debug("PAS NORMAL getPositionSide, input ");
+		return -1;
+	}
+	
+}
+
+static int canTake(int *array, int index, int userInput) {
+	if (getPositionSide(index) == getPositionSide(userInput))
+	{
+		return -1;
+	}
+	
+
     if (array[index] == 2 || array[index] == 3) {
         const int value = array[index];
         array[index] = 0;
@@ -127,11 +145,11 @@ static int playMoveAndTake(const int *baseArray, int *outArray, int userInput) {
 	debugd(current);
 
 	int recuperedSeeds = 0;
-	int valueToGive = canTake(outArray, current);
+	int valueToGive = canTake(outArray, current, userInput);
     while (valueToGive != -1) {
         recuperedSeeds += valueToGive;
         current = previousArrayElem(current);
-        valueToGive = canTake(outArray, current);
+        valueToGive = canTake(outArray, current, userInput);
     }
     
     return recuperedSeeds;

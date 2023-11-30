@@ -5,6 +5,7 @@
 
 #include "server2.h"
 #include "client2.h"
+#include <sys/_types/_fd_clr.h>
 
 #ifdef TRACE
 #define debug(expression) (printf("%s:%d -> " #expression "\n",__FILE__,__LINE__))
@@ -138,6 +139,16 @@ static void app(void) {
                      case 'm':
                         // diffusion = diffusionChatGlobal;
                         sprintf(buffer, buffer+3); // escape "/m "
+                        break;
+                     case 'q':
+                        write_client(client.sock, "You just disconnected from server");
+                        if (FD_ISSET(client.sock, &rdfs)) {
+                           printf("Bazouzou");
+                           FD_CLR(client.sock, &rdfs);
+                        }
+                        printf("Bazouzou2");
+                        close(client.sock);
+                        printf("Bazouzou3");
                         break;
                      default:
                         // diffusion = diffusionChatGlobal;
