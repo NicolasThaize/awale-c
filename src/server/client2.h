@@ -3,11 +3,11 @@
 
 #include "server2.h"
 
-typedef struct
-{
-   SOCKET sock;
+typedef struct {
+   SOCKET sock; // is also an id
    char name[BUF_SIZE];
    char state; // m : main menu, u : user list, g : game list, p : playing
-}Client;
+   char description[BUF_SIZE];
+} Client;
 
 #endif /* guard */

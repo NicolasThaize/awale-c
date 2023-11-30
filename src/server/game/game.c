@@ -104,12 +104,12 @@ static int playMove(const int baseArray[], int outArray[], const int userInput) 
         current = nextArrayElem(current);
 		if (current != userInput) {
 	        outArray[current]++;
-			debugd(current);
-			debugd(outArray[current]);
+			// debugd(current);
+			// debugd(outArray[current]);
 		} else {
 			i++; // skip case
-			debugd(i);
-			debugd(current);
+			// debugd(i);
+			// debugd(current);
 		}
     }
 
@@ -283,8 +283,9 @@ int main() {
 	int computerMove;
 	init(&g);
 	debug("Here");
+	int nbTour = 1;
 	while ( g.finished == 0 ) {
-		printf("-------------- TOUR 1 ----------------");
+		printf("-------------- TOUR %d ----------------",nbTour);
 		show_board(g.board);
 		humanMove = -1;
 		debugd(g.currentPlayer);
