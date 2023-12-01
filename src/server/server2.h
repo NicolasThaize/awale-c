@@ -56,14 +56,15 @@ static void write_client(SOCKET sock, const char *buffer);
 static void send_message_to_all_clients(Client *clients, Client client, int actual, const char *buffer, char from_server);
 static Client find_client(Client *clients, int numClient, const char* name);
 static void action(Client client, int input);
-static void select_user(Client client, int input);
-static void select_game(Client client, int input);
-static void showUserList(Client client);
-static void showGameList(Client client);
+static Client select_user_from_list(Client client, int input, Client *listAllClients);
+static Game select_game_from_list(Client client, int input, Game *listAllGames);
+static void showUserList(Client client, Client *listAllClients);
+static void showGameList(Client client, Game *gameList, Client *clientList);
 static void play(Client client, int input);
-static void show_board(const char* board);
+//static void show_board(const char* board);
 static char convert(char userInput);
 static void remove_client(Client *clients, int to_remove, int *actual);
 static void clear_clients(Client *clients, int actual);
+void showHelp(Client client);
 
 #endif /* guard */

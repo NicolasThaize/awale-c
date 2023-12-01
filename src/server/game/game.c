@@ -23,7 +23,7 @@ static char generateFirstPlayer() {
     return currentJoueur[r];
 }
 
-static char init(Game* g) {
+static char initGame(Game* g) {
 	for (int i=0; i<12; i++) {
 		g->board[i] = 4;
 	}
@@ -34,7 +34,7 @@ static char init(Game* g) {
 	return 1; // everything ok
 }
 
-static int convert(int userInput) {
+static int convertGame(int userInput) {
 	debugd(userInput);
 	int res;
 	if ( userInput <= 12 && userInput >= 7 ) {
@@ -297,7 +297,7 @@ int main() {
 	Game g;
 	int humanMove;
 	int computerMove;
-	init(&g);
+	initGame(&g);
 	debug("Here");
 	int nbTour = 1;
 	while ( g.finished == 0 ) {

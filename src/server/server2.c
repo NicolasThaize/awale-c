@@ -67,7 +67,7 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
          unsubscribeFromDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
          break;
       case GAME:
-         unsubscribeFromDiffusion(diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
+         unsubscribeFromDiffusion(&diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
          break;
       
       default:
@@ -85,11 +85,19 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
          subscribeToDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
          break;
       case GAME:
-         subscribeToDiffusion(diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
+         subscribeToDiffusion(&diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
          break;
       
       default:
          break;
+   }
+}
+
+static int getSocketIdByUsername(const char *username, const Client *listAllClient) {
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllClient[i].name == username) {
+         return listAllClient[i].sock;
+      }
    }
 }
 
@@ -157,7 +165,7 @@ static void app(void) {
          FD_SET(csock, &rdfs);
 
          Client c = { csock };
-         strncpy(c.name, buffer, BUF_SIZE - 1);
+         strncpy(c.name, buffer, SMALL_SIZE - 1);
          listAllClients[nbClients] = c;
          nbClients++;
       } else {
@@ -251,16 +259,16 @@ static void app(void) {
                            } else if (number == 1) {
                               // play
                            } else if (number == 2) {
-                              showGameList(client);
+                              // TODO : Implémenter quand il y aura une gamelist showGameList(client, gameList, clientList);
                               switchDiffusion(client.state,GAME_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
                            } else {
                               debug("Bad number from main menu");
                            }
                         case USER_LIST:
-                           select_user(client,number);
+                           select_user_from_list(client,number,listAllClients);
                            break;
                         case GAME_LIST:
-                           select_game(client,number);
+                            // TODO : Implémenter quand il y aura une gamelist select_game_from_list(client,number, gameList);
                            break;
                         case GAME:
                            // test if the player is in a game and get the game
@@ -294,14 +302,17 @@ Game find_game(Game gameList[], int challenger, int challenged) {
    // return {.active = 0, .finished = 1};
 }
 
-void showHelp() {
-   printf("/h\t\t\tshow this help\n");
-   printf("/c {message}\tsend your message\n");
-   printf("/y {player}\taccept challenge of the player {player}\n");
-   printf("/n {player}\trefuse challenge of the player {player}\n");
-   printf("/a\t\t\tgive up the game\n");
-   printf("/q\t\t\tgo back the previous menu (don't abandon in game)\n");
-   printf("{N}\t\t\texecute the action number {N}\n");
+void showHelp(Client client) {
+   char buffer[BUF_SIZE]; 
+   strcat(buffer, "/h\t\t\tshow this help\n");
+   strcat(buffer, "/c {message}\tsend your message\n");
+   strcat(buffer, "/y {player}\taccept challenge of the player {player}\n");
+   strcat(buffer, "/n {player}\trefuse challenge of the player {player}\n");
+   strcat(buffer, "/a\t\t\tgive up the game\n");
+   strcat(buffer, "/q\t\t\tgo back the previous menu (don't abandon in game)\n");
+   strcat(buffer, "{N}\t\t\texecute the action number {N}\n");
+
+   write_client(client.sock, buffer);
 }
 
 Client getClient(int id, Client allClients[], int nbClients) {
@@ -314,17 +325,66 @@ Client getClient(int id, Client allClients[], int nbClients) {
    // find smth to return
 }
 
-static void select_user(Client client, int input) {
-   printf("Nothing for now\n");
+static Client select_user_from_list(Client client, int input, Client *listAllClients) {
+   int nbExistingUsers = 1;
+
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllClients[i].sock != IMPOSSIBLE_ID)
+      {
+         if (nbExistingUsers == input) {
+            return listAllClients[i];
+         }
+         nbExistingUsers++;
+      }
+   }
 }
-static void select_game(Client client, int input) {
-   printf("Nothing for now\n");
+static Game select_game_from_list(Client client, int input, Game *listAllGames) {
+   int nbExistingGames = 1;
+
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllGames[i].active == 1)
+      {
+         if (nbExistingGames == input) {
+            return listAllGames[i];
+         }
+         nbExistingGames++;
+      }
+   }
 }
-static void showUserList(Client client) {
-   printf("Nothing for now\n");
+
+static void showUserList(Client client, Client *listAllClients) {
+   char usersList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des utilisateurs :\n";
+   int nbUsers = 0;
+
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllClients[i].sock != IMPOSSIBLE_ID) {
+         nbUsers++;
+         char nbUsersChars[SMALL_SIZE];
+         sprintf(nbUsersChars, "%d", nbUsers);
+
+         strcat(strcat(usersList, strcat(strcat(nbUsersChars, ". "), listAllClients[i].name)), "\n");
+      }
+   }
+
+   write_client(client.sock, usersList);
 }
-static void showGameList(Client client) {
-   printf("Nothing for now\n");
+
+static void showGameList(Client client, Game *gameList, Client *clientList) {
+   char gamesList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des parties :\n";
+   int nbGames = 0;
+
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (gameList[i].active == 1) {
+         nbGames++;
+         Client client1 = getClient(gameList[i].challenged, clientList, MAX_CLIENTS);
+         Client client2 = getClient(gameList[i].challenger, clientList, MAX_CLIENTS);
+         char nbGamesChars[SMALL_SIZE];
+         sprintf(nbGamesChars, "%d", nbGames);
+         strcat(strcat(gamesList, strcat(strcat(nbGamesChars, ". "), strcat(strcat(client1.name, "vs. "), client2.name))), "\n");
+      }
+   }
+   
+   write_client(client.sock, gamesList);
 }
 
 
@@ -501,7 +561,3 @@ int main(int argc, char **argv) {
 
    return EXIT_SUCCESS;
 }
-
-
-
-
