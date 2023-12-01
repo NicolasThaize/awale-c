@@ -68,6 +68,6 @@ static void play(Client client, int input);
 static char convert(char userInput);
 static void remove_client(Client *clients, int to_remove, int *actual);
 static void clear_clients(Client *clients, int actual);
-void showHelp();
+void showHelp(Client client);
 
 #endif /* guard */

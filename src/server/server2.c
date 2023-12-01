@@ -274,14 +274,17 @@ static void app(void) {
    end_connection(sock);
 }
 
-void showHelp() {
-   printf("/h\t\t\tshow this help\n");
-   printf("/c {message}\tsend your message\n");
-   printf("/y {player}\taccept challenge of the player {player}\n");
-   printf("/n {player}\trefuse challenge of the player {player}\n");
-   printf("/a\t\t\tgive up the game\n");
-   printf("/q\t\t\tgo back the previous menu (don't abandon in game)\n");
-   printf("{N}\t\t\texecute the action number {N}\n");
+void showHelp(Client client) {
+   char buffer[BUF_SIZE]; 
+   strcat(buffer, "/h\t\t\tshow this help\n");
+   strcat(buffer, "/c {message}\tsend your message\n");
+   strcat(buffer, "/y {player}\taccept challenge of the player {player}\n");
+   strcat(buffer, "/n {player}\trefuse challenge of the player {player}\n");
+   strcat(buffer, "/a\t\t\tgive up the game\n");
+   strcat(buffer, "/q\t\t\tgo back the previous menu (don't abandon in game)\n");
+   strcat(buffer, "{N}\t\t\texecute the action number {N}\n");
+
+   write_client(client.sock, buffer);
 }
 
 Client getClient(int id, Client allClients[], int nbClients) {
