@@ -263,7 +263,9 @@ static void app(void) {
                         case GAME:
                            // test if the player is in a game and get the game
                            // TODO : Implémenter quand il y aura une gamelist Game g = getClientGame(client, listOfGames);
-                           play(client,number); // to implement (arguments surely missing)
+                           // TODO : Implémenter quand il y aura une gamelist play(&g, convert(number)); // to implement (arguments surely missing)
+                           // TODO : Implémenter quand il y aura une gamelist printf("-------------- TOUR %d ----------------",nbTour);
+		                     // TODO : Implémenter quand il y aura une gamelist show_board(g.board);
                            break;
                         default:
                            debugc(client.state);
@@ -378,15 +380,46 @@ static void showGameList(Client client, Game *gameList, Client *clientList) {
 }
 
 
-static void play(Client client, int input) {
-   // char board[12] = {6,5,4,0,0,6,6,1,0,7,7,6}; // int sur 1 octet
-   // show_board(board);
-   // char aa;
-   // scanf("select case : %c", &aa);
-   // printf("You have selected ");
-   // printf("%c",convert(aa));
+static int play(Game* g, int computerMove) {
+	if ( moveOkay(*g,computerMove) == 1 ) {
+		debug("improve score and apply move");
+		printf("Move okay");
+		if ( g->currentPlayer == 1 ) {
+			g->scoreA += playMoveAndTake(g->board,g->board,computerMove);
+		} else if ( g->currentPlayer == 2 ) {
+			g->scoreB += playMoveAndTake(g->board,g->board,computerMove);
+		} else {
+			debug("current player pb");
+		}
+		debug("test win");
+		if ( ( g->currentPlayer == 1 && g->scoreA > 24 ) || ( g->currentPlayer == 2 && g->scoreB > 24 ) ) {
+			g->finished = 1;
+			printf("Player %d win !\n",g->currentPlayer);
+		}
+		debug("test loose");
+		if ( empty(g->board,nextPlayer(g->currentPlayer)) && bestMove(g->board, g->currentPlayer) == -1 ) {
+			g->finished = 1;
+			printf("Player %d win !\n",g->currentPlayer);
+		}
+		g->currentPlayer = nextPlayer(g->currentPlayer);
+	} else if ( moveOkay(*g,computerMove) == 3 ) {
+		printf("You want to take everything from your opponent but you can't so you take nothing\n");
+		playMove(g->board,g->board,computerMove);
+		g->currentPlayer = nextPlayer(g->currentPlayer);
+		g->finished = 1;
+	} else if ( moveOkay(*g,computerMove) == 2 ) {
+		printf("It appear that you have win\n");
+		g->finished = 1;
+	} else if ( moveOkay(*g,computerMove) == 4) {
+		printf("It is impossible to play an empty box\n");
+		return 0;
+	} else {
+		printf("There is an error\n");
+		debugd(moveOkay(*g,computerMove));
+		g->finished = 1;
+	}
 
-   // to do
+	return 1;
 }
 
 // static void show_board(const char* board) {

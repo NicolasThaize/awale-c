@@ -63,7 +63,7 @@ static Client select_user_from_list(Client client, int input, Client *listAllCli
 static Game select_game_from_list(Client client, int input, Game *listAllGames);
 static void showUserList(Client client, Client *listAllClients);
 static void showGameList(Client client, Game *gameList, Client *clientList);
-static void play(Client client, int input);
+static int play(Game* g, int computerMove);
 //static void show_board(const char* board);
 static char convert(char userInput);
 static void remove_client(Client *clients, int to_remove, int *actual);
