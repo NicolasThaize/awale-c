@@ -262,6 +262,7 @@ static void app(void) {
                            break;
                         case GAME:
                            // test if the player is in a game and get the game
+                           // TODO : Implémenter quand il y aura une gamelist Game g = getClientGame(client, listOfGames);
                            play(client,number); // to implement (arguments surely missing)
                            break;
                         default:
@@ -280,6 +281,15 @@ static void app(void) {
 
    clear_clients(listAllClients, nbClients);
    end_connection(sock);
+}
+
+static Game getClientGame(Client client, const Game *gameList) {
+   if (client.subscribedGame != IMPOSSIBLE_ID) {
+      if (gameList[client.subscribedGame].challenged == client.sock || gameList[client.subscribedGame].challenger == client.sock) {
+         return gameList[client.subscribedGame];
+      }
+   }
+   debugd("No game found");
 }
 
 void showHelp(Client client) {

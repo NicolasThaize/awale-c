@@ -69,5 +69,5 @@ static char convert(char userInput);
 static void remove_client(Client *clients, int to_remove, int *actual);
 static void clear_clients(Client *clients, int actual);
 void showHelp(Client client);
-
+static Game getClientGame(Client client, const Game *gameList);
 #endif /* guard */
