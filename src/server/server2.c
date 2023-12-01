@@ -150,7 +150,8 @@ static void app(void) {
                         if (client.state == 'm') {
                            close(client.sock);
                         } else {
-                           switchDiffusion(client.state,MAIN_MENU,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
+                           int indice = 2; // TODO
+                           switchDiffusion(client.state,MAIN_MENU,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                         }
                         break;
                      case 'h': // help
@@ -183,20 +184,24 @@ static void app(void) {
                            } else if (number == 1) {
                               // play
                               showUserList(client,listAllClients);
-                              switchDiffusion(client.state,USER_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
+                              int indice = -1; // TODO
+                              switchDiffusion(client.state,USER_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                            } else if (number == 2) {
                               // spectate
                               showGameList(client,listOfGames,listAllClients);
-                              switchDiffusion(client.state,GAME_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
+                              int indice = -1; // TODO
+                              switchDiffusion(client.state,GAME_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                            } else {
                               debug("Bad number from main menu");
                            }
                         case USER_LIST:
                            Client cSelected = userFromList(client,number,listAllClients);
+                           // TODO
                            break;
                         case GAME_LIST:
                            int indice = findEmptyGame(listOfGames);
                            Game gSelected = gameFromList(client,number, listOfGames);
+                           // TODO
                            break;
                         case GAME:
                            // test if the player is in a game and get the game
@@ -245,7 +250,7 @@ static void subscribeToDiffusion(int diffusion[], int max_size, int socketId) {
 }
 
 
-static void switchDiffusion(char from, char to, int socketId, int subscribedGame, int diffusionMainMenu[], int diffusionUsersList[], int diffusionGamesList[], int diffusionGames[]) {
+static void switchDiffusion(char from, char to, int socketId, int subscribedGame, int diffusionMainMenu[MAX_CLIENTS], int diffusionUsersList[MAX_CLIENTS], int diffusionGamesList[MAX_CLIENTS], int diffusionGames[MAX_CLIENTS]) {
    switch (from) {
       case MAIN_MENU:
          unsubscribeFromDiffusion(diffusionMainMenu, MAX_CLIENTS, socketId);
@@ -326,6 +331,7 @@ static void showGameList(Client client, Game gameList[], Client clientList[]) {
          nbGames++;
          Client client1 = getClient(gameList[i].challenged, clientList, MAX_CLIENTS);
          Client client2 = getClient(gameList[i].challenger, clientList, MAX_CLIENTS);
+         // TODO handle cases of client.sock = -1
          char nbGamesChars[SMALL_SIZE];
          sprintf(nbGamesChars, "%d", nbGames);
          strcat(strcat(gamesList, strcat(strcat(nbGamesChars, ". "), strcat(strcat(client1.name, "vs. "), client2.name))), "\n");
@@ -345,6 +351,9 @@ static Client getClient(int id, Client allClients[], int nbClients) {
    }
    debug("Id not found");
    // find smth to return
+   Client c;
+   c.sock = -1;
+   return c;
 }
 
 static Client findClient(Client clients[], int numClients, const char name[]) {
@@ -424,7 +433,7 @@ static Game getClientGame(Client client, const Game gameList[]) {
          return gameList[client.subscribedGame];
       }
    }
-   debugd("No game found");
+   debug("No game found");
 }
 
 // --------------- play ---------------

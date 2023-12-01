@@ -67,4 +67,13 @@ list of players that have subscribed to a diffusion -> correspond to a certain s
 - 
 - 
 
+## todo
+
+- send in diffusion list
+- main menu
+- game in general
+- cleaning (warnings)
+- handle exceptions 
+- 
+
 
