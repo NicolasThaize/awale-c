@@ -4,9 +4,6 @@
 #include <string.h>
 
 #include "server2.h"
-#include "client2.h"
-#include "challenge.h"
-#include "game/game.h"
 
 #ifdef TRACE
 #define debug(expression) (printf("%s:%d -> " #expression "\n",__FILE__,__LINE__))
@@ -18,91 +15,14 @@
 #define debugc(expression) ((void)0)
 #endif
 
-static void init(void) {
-#ifdef WIN32
-   WSADATA wsa;
-   int err = WSAStartup(MAKEWORD(2, 2), &wsa);
-   if(err < 0)
-   {
-      puts("WSAStartup failed !");
-      exit(EXIT_FAILURE);
-   }
-#endif
-}
-
-static void end(void) {
-#ifdef WIN32
-   WSACleanup();
-#endif
-}
-
-static void unsubscribeFromDiffusion(int *diffusion, int max_size, int socketId) {
-   for(int i = 0;  i < max_size; i++){
-      if (diffusion[i] == socketId) {
-         diffusion[i] = IMPOSSIBLE_ID;
-         return;
-      }
-   }
-}
-
-static void subscribeToDiffusion(int *diffusion, int max_size, int socketId) {
-   for(int i = 0;  i < max_size; i++){
-      if (diffusion[i] == IMPOSSIBLE_ID) {
-         diffusion[i] = socketId;
-         return;
-      }
-   }
- }
+#define exist(g) ((g.active == 0 && g.finished == 1) ? 1 : 0)
 
 
-static void switchDiffusion(char from, char to, int socketId, int subscribedGame, int *diffusionMainMenu, int *diffusionUsersList, int *diffusionGamesList, int *diffusionGames) {
-   switch (from) {
-      case MAIN_MENU:
-         unsubscribeFromDiffusion(diffusionMainMenu, MAX_CLIENTS, socketId);
-         break;
-      case USER_LIST:
-         unsubscribeFromDiffusion(diffusionUsersList, MAX_CLIENTS, socketId);
-         break;
-      case GAME_LIST:
-         unsubscribeFromDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
-         break;
-      case GAME:
-         unsubscribeFromDiffusion(&diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
-         break;
-      
-      default:
-         break;
-   }
 
-   switch (to){
-   case MAIN_MENU:
-         subscribeToDiffusion(diffusionMainMenu, MAX_CLIENTS, socketId);
-         break;
-      case USER_LIST:
-         subscribeToDiffusion(diffusionUsersList, MAX_CLIENTS, socketId);
-         break;
-      case GAME_LIST:
-         subscribeToDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
-         break;
-      case GAME:
-         subscribeToDiffusion(&diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
-         break;
-      
-      default:
-         break;
-   }
-}
-
-static int getSocketIdByUsername(const char *username, const Client *listAllClient) {
-   for (int i = 0; i < MAX_CLIENTS; i++) {
-      if (listAllClient[i].name == username) {
-         return listAllClient[i].sock;
-      }
-   }
-}
+// --------------- app ---------------
 
 static void app(void) {
-   SOCKET sock = init_connection();
+   SOCKET sock = initConnection();
    char buffer[BUF_SIZE];
    char name[SMALL_SIZE];
    int number;
@@ -154,7 +74,7 @@ static void app(void) {
          }
 
          /* after connecting the client sends its name */
-         if (read_client(csock, buffer) == -1) {
+         if (readClient(csock, buffer) == -1) {
             /* disconnected */
             continue;
          }
@@ -173,14 +93,14 @@ static void app(void) {
             /* a client is talking */
             if ( FD_ISSET(listAllClients[i].sock, &rdfs) ) {
                Client client = listAllClients[i];
-               int c = read_client(listAllClients[i].sock, buffer);
+               int c = readClient(listAllClients[i].sock, buffer);
                /* client disconnected */
                if (c == 0) {
                   closesocket(listAllClients[i].sock);
-                  remove_client(listAllClients, i, &nbClients);
+                  removeClient(listAllClients, i, &nbClients);
                   strncpy(buffer, client.name, BUF_SIZE - 1);
                   strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
-                  send_message_to_all_clients(listAllClients, client, nbClients, buffer, 1);
+                  sendMessage2clients(listAllClients, client, nbClients, buffer, 1);
                }
                else {
                   // Client* diffusion;
@@ -190,8 +110,10 @@ static void app(void) {
                         if (sscanf(buffer, "/y %s", name) == 1) {
                            printf("Name: %s\n", name);
                            // find the corresponding game from listOfGames
-                           find_game();
-                           // change active attribute of game to 1
+                           int id = getSocketIdByUsername(name,listAllClients);
+                           int indice = findGame(listOfGames, id, client.sock);
+                           listOfGames[indice].active = 1;
+                           listOfGames[indice].finished = 0;
                         } else {
                            debug("Problem sscanf");
                         }
@@ -200,9 +122,10 @@ static void app(void) {
                         if (sscanf(buffer, "/n %s", name) == 1) {
                            printf("Name: %s\n", name);
                            // find the corresponding game from listOfGames
-                           int id;
-                           find_game(listOfGames, id, client.sock);
-                           // remove it from the list
+                           int id = getSocketIdByUsername(name,listAllClients);
+                           int indice = findGame(listOfGames, id, client.sock);
+                           listOfGames[indice].active = 0;
+                           listOfGames[indice].finished = 1;
                         } else {
                            debug("Problem sscanf");
                         }
@@ -210,13 +133,13 @@ static void app(void) {
                      case 'c': // chat
                         if (sscanf(buffer, "/c %[^\n]", buffer) == 1) {
                            printf("Remaining: %s\n", buffer);
-                           send_message_to_all_clients(listAllClients, client, nbClients, buffer, 0);
+                           sendMessage2clients(listAllClients, client, nbClients, buffer, 0);
                         } else {
                            debug("Problem sscanf");
                         }
                         break;
                      case 'q': // quit
-                        // write_client(client.sock, "You just disconnected from server");
+                        // writeClient(client.sock, "You just disconnected from server");
                         // if (FD_ISSET(client.sock, &rdfs)) {
                         //    printf("Bazouzou");
                         //    FD_CLR(client.sock, &rdfs);
@@ -258,17 +181,21 @@ static void app(void) {
                               // quit
                            } else if (number == 1) {
                               // play
+                              showUserList(client,listAllClients);
+                              switchDiffusion(client.state,USER_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
                            } else if (number == 2) {
-                              // TODO : Implémenter quand il y aura une gamelist showGameList(client, gameList, clientList);
+                              // spectate
+                              showGameList(client,listOfGames,listAllClients);
                               switchDiffusion(client.state,GAME_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
                            } else {
                               debug("Bad number from main menu");
                            }
                         case USER_LIST:
-                           select_user_from_list(client,number,listAllClients);
+                           Client cSelected = userFromList(client,number,listAllClients);
                            break;
                         case GAME_LIST:
-                            // TODO : Implémenter quand il y aura une gamelist select_game_from_list(client,number, gameList);
+                           int indice = findEmptyGame(listOfGames);
+                           Game gSelected = gameFromList(client,number, listOfGames);
                            break;
                         case GAME:
                            // test if the player is in a game and get the game
@@ -279,7 +206,8 @@ static void app(void) {
                            break;
                      }
                   } else {
-                     debug("Problem !!");
+                     showHelp(client);
+                     debug("NaN nor a command");
                   }
                }
                break;
@@ -288,22 +216,73 @@ static void app(void) {
       }
    }
 
-   clear_clients(listAllClients, nbClients);
-   end_connection(sock);
+   clearClients(listAllClients, nbClients);
+   endConnection(sock);
 }
 
-Game find_game(Game gameList[], int challenger, int challenged) {
-   for (int i=0; i<MAX_GAMES; i++) {
-      if ( gameList[i].active == 0 && gameList[i].finished != 1 && gameList[i].challenger == challenger && gameList[i].challenged == challenged ) {
-         return gameList[i];
+// --------------- diffusion ---------------
+
+static void unsubscribeFromDiffusion(int diffusion[], int max_size, int socketId) {
+   for(int i = 0;  i < max_size; i++){
+      if (diffusion[i] == socketId) {
+         diffusion[i] = IMPOSSIBLE_ID;
+         return;
       }
    }
-   // find smth to return
-   // return {.active = 0, .finished = 1};
 }
 
-void showHelp(Client client) {
-   char buffer[BUF_SIZE]; 
+static void subscribeToDiffusion(int diffusion[], int max_size, int socketId) {
+   for(int i = 0;  i < max_size; i++){
+      if (diffusion[i] == IMPOSSIBLE_ID) {
+         diffusion[i] = socketId;
+         return;
+      }
+   }
+}
+
+
+static void switchDiffusion(char from, char to, int socketId, int subscribedGame, int diffusionMainMenu[], int diffusionUsersList[], int diffusionGamesList[], int diffusionGames[]) {
+   switch (from) {
+      case MAIN_MENU:
+         unsubscribeFromDiffusion(diffusionMainMenu, MAX_CLIENTS, socketId);
+         break;
+      case USER_LIST:
+         unsubscribeFromDiffusion(diffusionUsersList, MAX_CLIENTS, socketId);
+         break;
+      case GAME_LIST:
+         unsubscribeFromDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
+         break;
+      case GAME:
+         unsubscribeFromDiffusion(&diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
+         break;
+      
+      default:
+         break;
+   }
+
+   switch (to){
+   case MAIN_MENU:
+         subscribeToDiffusion(diffusionMainMenu, MAX_CLIENTS, socketId);
+         break;
+      case USER_LIST:
+         subscribeToDiffusion(diffusionUsersList, MAX_CLIENTS, socketId);
+         break;
+      case GAME_LIST:
+         subscribeToDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
+         break;
+      case GAME:
+         subscribeToDiffusion(&diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
+         break;
+      
+      default:
+         break;
+   }
+}
+
+// --------------- show ---------------
+
+static void showHelp(Client client) {
+   char buffer[BUF_SIZE];
    strcat(buffer, "/h\t\t\tshow this help\n");
    strcat(buffer, "/c {message}\tsend your message\n");
    strcat(buffer, "/y {player}\taccept challenge of the player {player}\n");
@@ -312,47 +291,10 @@ void showHelp(Client client) {
    strcat(buffer, "/q\t\t\tgo back the previous menu (don't abandon in game)\n");
    strcat(buffer, "{N}\t\t\texecute the action number {N}\n");
 
-   write_client(client.sock, buffer);
+   writeClient(client.sock, buffer);
 }
 
-Client getClient(int id, Client allClients[], int nbClients) {
-   for (int i=0; i<nbClients; i++) {
-      if (allClients[i].sock == id) {
-         return allClients[i];
-      }
-   }
-   debug("Id not found");
-   // find smth to return
-}
-
-static Client select_user_from_list(Client client, int input, Client *listAllClients) {
-   int nbExistingUsers = 1;
-
-   for (int i = 0; i < MAX_CLIENTS; i++) {
-      if (listAllClients[i].sock != IMPOSSIBLE_ID)
-      {
-         if (nbExistingUsers == input) {
-            return listAllClients[i];
-         }
-         nbExistingUsers++;
-      }
-   }
-}
-static Game select_game_from_list(Client client, int input, Game *listAllGames) {
-   int nbExistingGames = 1;
-
-   for (int i = 0; i < MAX_CLIENTS; i++) {
-      if (listAllGames[i].active == 1)
-      {
-         if (nbExistingGames == input) {
-            return listAllGames[i];
-         }
-         nbExistingGames++;
-      }
-   }
-}
-
-static void showUserList(Client client, Client *listAllClients) {
+static void showUserList(Client client, Client listAllClients[]) {
    char usersList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des utilisateurs :\n";
    int nbUsers = 0;
 
@@ -366,10 +308,10 @@ static void showUserList(Client client, Client *listAllClients) {
       }
    }
 
-   write_client(client.sock, usersList);
+   writeClient(client.sock, usersList);
 }
 
-static void showGameList(Client client, Game *gameList, Client *clientList) {
+static void showGameList(Client client, Game gameList[], Client clientList[]) {
    char gamesList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des parties :\n";
    int nbGames = 0;
 
@@ -384,9 +326,93 @@ static void showGameList(Client client, Game *gameList, Client *clientList) {
       }
    }
    
-   write_client(client.sock, gamesList);
+   writeClient(client.sock, gamesList);
 }
 
+// --------------- select ---------------
+
+static Client getClient(int id, Client allClients[], int nbClients) {
+   for (int i=0; i<nbClients; i++) {
+      if (allClients[i].sock == id) {
+         return allClients[i];
+      }
+   }
+   debug("Id not found");
+   // find smth to return
+}
+
+static Client findClient(Client clients[], int numClients, const char name[]) {
+   for (int i=0; i<numClients; i++) {
+      if ( strcmp(clients[i].name,name) == 0 ) {
+         return clients[i];
+      }
+   }
+   debug("No clients found !");
+   return clients[0]; // find a better stop case
+}
+
+static int getSocketIdByUsername(const char username[], const Client listAllClient[]) {
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllClient[i].name == username) {
+         return listAllClient[i].sock;
+      }
+   }
+}
+
+// --------------- from list ---------------
+
+static Client userFromList(Client client, int input, Client listAllClients[]) {
+   int nbExistingUsers = 1;
+
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllClients[i].sock != IMPOSSIBLE_ID)
+      {
+         if (nbExistingUsers == input) {
+            return listAllClients[i];
+         }
+         nbExistingUsers++;
+      }
+   }
+}
+
+static Game gameFromList(Client client, int input, Game listAllGames[]) {
+   int nbExistingGames = 1;
+
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllGames[i].active == 1)
+      {
+         if (nbExistingGames == input) {
+            return listAllGames[i];
+         }
+         nbExistingGames++;
+      }
+   }
+}
+
+// --------------- game ---------------
+
+static int findEmptyGame(Game gameList[]) {
+   for (int i=0; i<MAX_GAMES; i++) {
+      if (exist(gameList[i]) == 0) { // la game n'existe pas
+         return i;
+      }
+   }
+   return -1;
+}
+
+static int findGame(Game gameList[], int challenger, int challenged) {
+   for (int i=0; i<MAX_GAMES; i++) {
+      if ( gameList[i].active == 0 &&
+            gameList[i].finished != 1 &&
+            gameList[i].challenger == challenger &&
+            gameList[i].challenged == challenged ) {
+         return i;
+      }
+   }
+   return -1;
+}
+
+// --------------- other ---------------
 
 static void play(Client client, int input) {
    // char board[12] = {6,5,4,0,0,6,6,1,0,7,7,6}; // int sur 1 octet
@@ -451,107 +477,13 @@ static char convert(char userInput) {
    return res;
 }
 
-static Client find_client(Client *clients, int numClients, const char* name) {
-   for (int i=0; i<numClients; i++) {
-      if ( strcmp(clients[i].name,name) == 0 ) {
-         return clients[i];
-      }
-   }
-   debug("No clients found !");
-   return clients[0]; // find a better stop case
-}
-
-static void clear_clients(Client *clients, int nbClients) {
-   int i = 0;
-   for(i = 0; i < nbClients; i++) {
-      closesocket(clients[i].sock);
-   }
-}
-
-static void remove_client(Client *clients,
-                        int to_remove,
-                        int *nbClients) {
-   /* we remove the client in the array */
-   memmove(clients + to_remove,
-         clients + to_remove + 1,
-         (*nbClients - to_remove - 1) * sizeof(Client));
-   /* number client - 1 */
-   (*nbClients)--;
-}
-
-static void send_message_to_all_clients(Client *clients,
-                                       Client sender,
-                                       int nbClients,
-                                       const char *buffer,
-                                       char from_server) {
-   int i = 0;
-   char message[BUF_SIZE];
-   message[0] = 0;
-   for(i = 0; i < nbClients; i++) {
-      /* we don't send message to the sender */
-      if(sender.sock != clients[i].sock) {
-         if(from_server == 0) {
-            strncpy(message, sender.name, BUF_SIZE - 1);
-            strncat(message, " : ", sizeof message - strlen(message) - 1);
-         }
-         strncat(message, buffer, sizeof message - strlen(message) - 1);
-         write_client(clients[i].sock, message);
-      }
-   }
-}
-
-static int init_connection(void) {
-   SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
-   SOCKADDR_IN sin = { 0 };
-
-   if(sock == INVALID_SOCKET) {
-      perror("socket()");
-      exit(errno);
-   }
-
-   sin.sin_addr.s_addr = htonl(INADDR_ANY);
-   sin.sin_port = htons(PORT);
-   sin.sin_family = AF_INET;
-
-   if(bind(sock,(SOCKADDR *) &sin, sizeof sin) == SOCKET_ERROR) {
-      perror("bind()");
-      exit(errno);
-   }
-
-   if(listen(sock, MAX_CLIENTS) == SOCKET_ERROR) {
-      perror("listen()");
-      exit(errno);
-   }
-
-   return sock;
-}
-
-static void end_connection(int sock) {
-   closesocket(sock);
-}
-
-static int read_client(SOCKET sock, char *buffer) {
-   int n = 0;
-
-   if((n = recv(sock, buffer, BUF_SIZE - 1, 0)) < 0) {
-      perror("recv()");
-      /* if recv error we disonnect the client */
-      n = 0;
-   }
-
-   buffer[n] = 0;
-
-   return n;
-}
-
-static void write_client(SOCKET sock, const char *buffer) {
-   if(send(sock, buffer, strlen(buffer), 0) < 0) {
-      perror("send()");
-      exit(errno);
-   }
-}
-
 int main(int argc, char **argv) {
+
+   int PORT = 1977;
+   if (argc == 2) {
+      sscanf(argv[1],"%d",&PORT);
+      modifyPort(PORT);
+   }
 
    init();
 
@@ -561,3 +493,6 @@ int main(int argc, char **argv) {
 
    return EXIT_SUCCESS;
 }
+
+
+

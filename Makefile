@@ -47,11 +47,11 @@ server : $(EXE_SERVER) ## (defaut) compile le serveur debug
 $(EXE_SERVER) : $(SRC_SERVER) # linkage $(EXE)
 	$(CXX) $(FLAG_DEBUG) -o $@ $^ $(LIBS)
 
-# $(BDIR_SERVER)%.d : src/server/%.c # dependances
-# 	$(CXX) $(FLAG_DEBUG) -MMD -c $< -o $@ $(LIBS)
+$(BDIR_SERVER)%.d : src/server/%.c # dependances
+	$(CXX) $(FLAG_DEBUG) -MMD -c $< -o $@ $(LIBS)
 
-# $(BDIR_SERVER)%.o : src/server/%.c $(DEPS_SERVER) # compilation
-# 	$(CXX) $(FLAG_DEBUG) -c $< -o $@ $(LIBS)
+$(BDIR_SERVER)%.o : src/server/%.c $(DEPS_SERVER) # compilation
+	$(CXX) $(FLAG_DEBUG) -c $< -o $@ $(LIBS)
 
 # --------------------  -------------------- #
 
