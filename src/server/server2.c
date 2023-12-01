@@ -6,6 +6,7 @@
 #include "server2.h"
 #include "client2.h"
 #include "challenge.h"
+#include "game/game.h"
 
 #ifdef TRACE
 #define debug(expression) (printf("%s:%d -> " #expression "\n",__FILE__,__LINE__))
@@ -106,7 +107,7 @@ static void app(void) {
    int diffusionUsersList[MAX_CLIENTS] = { [0 ... MAX_CLIENTS-1] = IMPOSSIBLE_ID };
    int diffusionGamesList[MAX_CLIENTS] = { [0 ... MAX_CLIENTS-1] = IMPOSSIBLE_ID };
    int diffusionGames[MAX_GAMES][MAX_CLIENTS] = { [0 ... MAX_GAMES-1] = { [0 ... MAX_CLIENTS-1] = IMPOSSIBLE_ID } };
-   Challenge listOfChallenges[MAX_GAMES];
+   Game listOfGames[MAX_GAMES] = { [0 ... MAX_GAMES-1] = {.active = 0, .finished = 1} };
 
    fd_set rdfs;
 
@@ -180,7 +181,8 @@ static void app(void) {
                      case 'y': // yes
                         if (sscanf(buffer, "/y %s", name) == 1) {
                            printf("Name: %s\n", name);
-                           // find the corresponding game
+                           // find the corresponding game from listOfGames
+                           find_game();
                            // change active attribute of game to 1
                         } else {
                            debug("Problem sscanf");
@@ -189,7 +191,9 @@ static void app(void) {
                      case 'n': // no
                         if (sscanf(buffer, "/n %s", name) == 1) {
                            printf("Name: %s\n", name);
-                           // find the corresponding game
+                           // find the corresponding game from listOfGames
+                           int id;
+                           find_game(listOfGames, id, client.sock);
                            // remove it from the list
                         } else {
                            debug("Problem sscanf");
@@ -221,7 +225,14 @@ static void app(void) {
                         showHelp(client);
                         break;
                      case 'a': // abandon
-                        if (client.state == GAME)
+                        if (client.state == GAME) {
+                           if (client.sock == listOfGames[client.subscribedGame].challenged ||
+                                 client.sock == listOfGames[client.subscribedGame].challenged) {
+                              // show win
+                              listOfGames[client.subscribedGame].active = 0;
+                              listOfGames[client.subscribedGame].finished = 1;
+                           }
+                        }
                         break;
                      default:
                         // diffusion = listAllClients;
@@ -271,6 +282,16 @@ static void app(void) {
 
    clear_clients(listAllClients, nbClients);
    end_connection(sock);
+}
+
+Game find_game(Game gameList[], int challenger, int challenged) {
+   for (int i=0; i<MAX_GAMES; i++) {
+      if ( gameList[i].active == 0 && gameList[i].finished != 1 && gameList[i].challenger == challenger && gameList[i].challenged == challenged ) {
+         return gameList[i];
+      }
+   }
+   // find smth to return
+   // return {.active = 0, .finished = 1};
 }
 
 void showHelp() {

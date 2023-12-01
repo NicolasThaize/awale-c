@@ -35,14 +35,13 @@ typedef struct in_addr IN_ADDR;
 
 #define BUF_SIZE    1024
 #define IMPOSSIBLE_ID -1
+// #define IMPOSSIBLE_GAME (Game g; g.active = 0; g.finished = 1;)
 
 #define MAIN_MENU 'm'
 #define USER_LIST 'u'
 #define GAME_LIST 'g'
 #define GAME 'p'
 #define SMALL_SIZE	32
-
-#include "client2.h"
 
 static void init(void);
 static void end(void);
