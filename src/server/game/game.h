@@ -18,7 +18,7 @@ typedef struct
 
 
 static char generateFirstPlayer();
-static char initGame();
+static char initGame(Game* g);
 static int convertGame(int userInput);
 static int nextArrayElem(int baseIndex);
 static int previousArrayElem(int baseIndex);
@@ -31,6 +31,7 @@ static int sumSide(int board[12], char side);
 static int bestMove(int board[12], char player);
 static char moveOkay(Game g, int move);
 static void show_board(const int board[]);
-
+static int getUserInput(Game g);
+static int playTheMove(Game* g, int computerMove);
 
 #endif /* guard */

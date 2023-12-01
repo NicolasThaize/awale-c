@@ -228,6 +228,11 @@ static int bestMove(int board[12], char player) {
 }
 
 static char moveOkay(Game g, int move) {
+	if (g.board[move] == 0)
+	{
+		return 4;
+	}
+	
 	playMoveAndTake(g.board, g.tmp, move);
 	// play move on board to tmp and take and put taking into score
 	if ( empty(g.board,nextPlayer(g.currentPlayer)) == 1 ) {
@@ -292,7 +297,7 @@ static void show_board(const int board[]) {
 }
 
 
-int main() {
+int oldMain() {
 	debugd(nextArrayElem(5));
 	Game g;
 	int humanMove;
@@ -313,7 +318,7 @@ int main() {
 			printf("Player 2 : ");
 			scanf("%d",&humanMove);
 		}
-	    computerMove = convert(humanMove);
+	    computerMove = convertGame(humanMove);
 		debugd(computerMove);
 
 		if ( moveOkay(g,computerMove) == 1 ) {
@@ -353,8 +358,81 @@ int main() {
 			g.finished = 1;
 		}
 	}
+
+	return 0;
 }
 
+int main() {
+	Game g;
+	initGame(&g);
 
+	int nbTour = 1;
+	while (1) {
+		printf("-------------- TOUR %d ----------------",nbTour);
+		show_board(g.board);
+		int computerMove = getUserInput(g);
+		int incrementTour = playTheMove(&g, computerMove);
+		if (g.finished == 1) {
+			break;
+		} else if (incrementTour == 1) {
+			nbTour++;
+		}
+	}
+}
 
+int playTheMove(Game* g, int computerMove) {
+	if ( moveOkay(*g,computerMove) == 1 ) {
+		debug("improve score and apply move");
+		printf("Move okay");
+		if ( g->currentPlayer == 1 ) {
+			g->scoreA += playMoveAndTake(g->board,g->board,computerMove);
+		} else if ( g->currentPlayer == 2 ) {
+			g->scoreB += playMoveAndTake(g->board,g->board,computerMove);
+		} else {
+			debug("current player pb");
+		}
+		debug("test win");
+		if ( ( g->currentPlayer == 1 && g->scoreA > 24 ) || ( g->currentPlayer == 2 && g->scoreB > 24 ) ) {
+			g->finished = 1;
+			printf("Player %d win !\n",g->currentPlayer);
+		}
+		debug("test loose");
+		if ( empty(g->board,nextPlayer(g->currentPlayer)) && bestMove(g->board, g->currentPlayer) == -1 ) {
+			g->finished = 1;
+			printf("Player %d win !\n",g->currentPlayer);
+		}
+		g->currentPlayer = nextPlayer(g->currentPlayer);
+	} else if ( moveOkay(*g,computerMove) == 3 ) {
+		printf("You want to take everything from your opponent but you can't so you take nothing\n");
+		playMove(g->board,g->board,computerMove);
+		g->currentPlayer = nextPlayer(g->currentPlayer);
+		g->finished = 1;
+	} else if ( moveOkay(*g,computerMove) == 2 ) {
+		printf("It appear that you have win\n");
+		g->finished = 1;
+	} else if ( moveOkay(*g,computerMove) == 4) {
+		printf("It is impossible to play an empty box\n");
+		return 0;
+	} else {
+		printf("There is an error\n");
+		debugd(moveOkay(*g,computerMove));
+		g->finished = 1;
+	}
 
+	return 1;
+}
+
+static int getUserInput(Game g) {
+	int humanMove = -1;
+	debugd(g.currentPlayer);
+	while ( g.currentPlayer == 1 && ( humanMove <= 0 || humanMove > 6 ) ) {
+		printf("Player 1 : ");
+		scanf("%d",&humanMove);
+	}
+	while ( g.currentPlayer == 2 && ( humanMove <= 6 || humanMove > 12 ) ) {
+		printf("Player 2 : ");
+		scanf("%d",&humanMove);
+	}
+	int computerMove = convertGame(humanMove);
+	return computerMove;
+}
