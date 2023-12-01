@@ -43,6 +43,8 @@ typedef struct in_addr IN_ADDR;
 #define SMALL_SIZE	32
 
 #include "client2.h"
+#include "challenge.h"
+#include "game/game.h"
 
 static void init(void);
 static void end(void);
@@ -59,12 +61,13 @@ static Client find_client(Client *clients, int numClient, const char* name);
 static void action(Client client, int input);
 static void select_user(Client client, int input);
 static void select_game(Client client, int input);
-static void showUserList(Client client);
-static void showGameList(Client client);
+static void showUserList(Client client, Client *listAllClients);
+static void showGameList(Client client, Game *gameList, Client *clientList);
 static void play(Client client, int input);
-static void show_board(const char* board);
+//static void show_board(const char* board);
 static char convert(char userInput);
 static void remove_client(Client *clients, int to_remove, int *actual);
 static void clear_clients(Client *clients, int actual);
+void showHelp();
 
 #endif /* guard */

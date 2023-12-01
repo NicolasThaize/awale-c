@@ -6,6 +6,7 @@
 #include "server2.h"
 #include "client2.h"
 #include "challenge.h"
+#include "game/game.h"
 
 #ifdef TRACE
 #define debug(expression) (printf("%s:%d -> " #expression "\n",__FILE__,__LINE__))
@@ -66,7 +67,7 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
          unsubscribeFromDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
          break;
       case GAME:
-         unsubscribeFromDiffusion(diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
+         unsubscribeFromDiffusion(&diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
          break;
       
       default:
@@ -84,7 +85,7 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
          subscribeToDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
          break;
       case GAME:
-         subscribeToDiffusion(diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
+         subscribeToDiffusion(&diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
          break;
       
       default:
@@ -156,7 +157,7 @@ static void app(void) {
          FD_SET(csock, &rdfs);
 
          Client c = { csock };
-         strncpy(c.name, buffer, BUF_SIZE - 1);
+         strncpy(c.name, buffer, SMALL_SIZE - 1);
          listAllClients[nbClients] = c;
          nbClients++;
       } else {
@@ -240,7 +241,7 @@ static void app(void) {
                            } else if (number == 1) {
                               // play
                            } else if (number == 2) {
-                              showGameList(client);
+                              // TODO : Implémenter quand il y aura une gamelist showGameList(client, gameList, clientList);
                               switchDiffusion(client.state,GAME_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames);
                            } else {
                               debug("Bad number from main menu");
@@ -299,11 +300,40 @@ static void select_user(Client client, int input) {
 static void select_game(Client client, int input) {
    printf("Nothing for now\n");
 }
-static void showUserList(Client client) {
-   printf("Nothing for now\n");
+
+static void showUserList(Client client, Client *listAllClients) {
+   char usersList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des utilisateurs :\n";
+   int nbUsers = 0;
+
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllClients[i].sock != IMPOSSIBLE_ID) {
+         nbUsers++;
+         char nbUsersChars[SMALL_SIZE];
+         sprintf(nbUsersChars, "%d", nbUsers);
+
+         strcat(usersList, strcat(strcat(nbUsersChars, ". "), listAllClients[i].name));
+      }
+   }
+
+   write_client(client.sock, usersList);
 }
-static void showGameList(Client client) {
-   printf("Nothing for now\n");
+
+static void showGameList(Client client, Game *gameList, Client *clientList) {
+   char gamesList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des parties :\n";
+   int nbGames = 0;
+
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (gameList[i].active == 1) {
+         nbGames++;
+         Client client1 = getClient(gameList[i].challenged, clientList, MAX_CLIENTS);
+         Client client2 = getClient(gameList[i].challenger, clientList, MAX_CLIENTS);
+         char nbGamesChars[SMALL_SIZE];
+         sprintf(nbGamesChars, "%d", nbGames);
+         strcat(gamesList, strcat(strcat(nbGamesChars, ". "), strcat(strcat(client1.name, "vs. "), client2.name)));
+      }
+   }
+   
+   write_client(client.sock, gamesList);
 }
 
 
@@ -480,7 +510,3 @@ int main(int argc, char **argv) {
 
    return EXIT_SUCCESS;
 }
-
-
-
-

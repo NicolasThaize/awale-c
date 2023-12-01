@@ -18,8 +18,8 @@ typedef struct
 
 
 static char generateFirstPlayer();
-static char init();
-static int convert(int userInput);
+static char initGame();
+static int convertGame(int userInput);
 static int nextArrayElem(int baseIndex);
 static int previousArrayElem(int baseIndex);
 static int canTake(int *array, int index, int userInput);
