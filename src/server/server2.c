@@ -247,7 +247,7 @@ static void app(void) {
                               debug("Bad number from main menu");
                            }
                         case USER_LIST:
-                           select_user(client,number);
+                           select_user_from_list(client,number,listAllClients);
                            break;
                         case GAME_LIST:
                            select_game(client,number);
@@ -297,8 +297,18 @@ Client getClient(int id, Client allClients[], int nbClients) {
    // find smth to return
 }
 
-static void select_user(Client client, int input) {
-   printf("Nothing for now\n");
+static Client select_user_from_list(Client client, int input, Client *listAllClients) {
+   int nbExistingUsers = 1;
+
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllClients[i].sock != IMPOSSIBLE_ID)
+      {
+         if (nbExistingUsers == input) {
+            return listAllClients[i];
+         }
+         nbExistingUsers++;
+      }
+   }
 }
 static void select_game(Client client, int input) {
    printf("Nothing for now\n");

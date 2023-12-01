@@ -59,7 +59,7 @@ static void write_client(SOCKET sock, const char *buffer);
 static void send_message_to_all_clients(Client *clients, Client client, int actual, const char *buffer, char from_server);
 static Client find_client(Client *clients, int numClient, const char* name);
 static void action(Client client, int input);
-static void select_user(Client client, int input);
+static Client select_user_from_list(Client client, int input, Client *listAllClients);
 static void select_game(Client client, int input);
 static void showUserList(Client client, Client *listAllClients);
 static void showGameList(Client client, Game *gameList, Client *clientList);
