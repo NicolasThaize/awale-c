@@ -314,7 +314,7 @@ static void showUserList(Client client, Client *listAllClients) {
          char nbUsersChars[SMALL_SIZE];
          sprintf(nbUsersChars, "%d", nbUsers);
 
-         strcat(usersList, strcat(strcat(nbUsersChars, ". "), listAllClients[i].name));
+         strcat(strcat(usersList, strcat(strcat(nbUsersChars, ". "), listAllClients[i].name)), "\n");
       }
    }
 
@@ -332,7 +332,7 @@ static void showGameList(Client client, Game *gameList, Client *clientList) {
          Client client2 = getClient(gameList[i].challenger, clientList, MAX_CLIENTS);
          char nbGamesChars[SMALL_SIZE];
          sprintf(nbGamesChars, "%d", nbGames);
-         strcat(gamesList, strcat(strcat(nbGamesChars, ". "), strcat(strcat(client1.name, "vs. "), client2.name)));
+         strcat(strcat(gamesList, strcat(strcat(nbGamesChars, ". "), strcat(strcat(client1.name, "vs. "), client2.name))), "\n");
       }
    }
    
