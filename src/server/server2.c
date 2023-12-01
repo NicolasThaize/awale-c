@@ -88,6 +88,7 @@ static void app(void) {
          strncpy(c.name, buffer, SMALL_SIZE - 1);
          listAllClients[nbClients] = c;
          nbClients++;
+         showMenu(c); // TODO
       } else {
          for (int i=0; i<nbClients; i++) {
             /* a client is talking */
@@ -199,7 +200,10 @@ static void app(void) {
                            break;
                         case GAME:
                            // test if the player is in a game and get the game
-                           play(client,number); // to implement (arguments surely missing)
+                           // TODO : Implémenter quand il y aura une gamelist Game g = getClientGame(client, listOfGames);
+                           // TODO : Implémenter quand il y aura une gamelist play(&g, convert(number)); // to implement (arguments surely missing)
+                           // TODO : Implémenter quand il y aura une gamelist printf("-------------- TOUR %d ----------------",nbTour);
+		                     // TODO : Implémenter quand il y aura une gamelist show_board(g.board);
                            break;
                         default:
                            debugc(client.state);
@@ -282,7 +286,7 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
 // --------------- show ---------------
 
 static void showHelp(Client client) {
-   char buffer[BUF_SIZE];
+   char buffer[BUF_SIZE]; 
    strcat(buffer, "/h\t\t\tshow this help\n");
    strcat(buffer, "/c {message}\tsend your message\n");
    strcat(buffer, "/y {player}\taccept challenge of the player {player}\n");
@@ -293,6 +297,8 @@ static void showHelp(Client client) {
 
    writeClient(client.sock, buffer);
 }
+
+static void showMenu(Client client) {}
 
 static void showUserList(Client client, Client listAllClients[]) {
    char usersList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des utilisateurs :\n";
@@ -412,56 +418,60 @@ static int findGame(Game gameList[], int challenger, int challenged) {
    return -1;
 }
 
-// --------------- other ---------------
-
-static void play(Client client, int input) {
-   // char board[12] = {6,5,4,0,0,6,6,1,0,7,7,6}; // int sur 1 octet
-   // show_board(board);
-   // char aa;
-   // scanf("select case : %c", &aa);
-   // printf("You have selected ");
-   // printf("%c",convert(aa));
-
-   // to do
+static Game getClientGame(Client client, const Game gameList[]) {
+   if (client.subscribedGame != IMPOSSIBLE_ID) {
+      if (gameList[client.subscribedGame].challenged == client.sock || gameList[client.subscribedGame].challenger == client.sock) {
+         return gameList[client.subscribedGame];
+      }
+   }
+   debugd("No game found");
 }
 
-// static void show_board(const char* board) {
-//    printf("\n");
-//    for (int i=12; i>9; i--) {
-//       printf("  %d",i);
-//    }
-//    for (int i=9; i>6; i--) {
-//       printf("  %d ",i);
-//    }
-//    printf("\n");
-//    for (int i=0; i<6; i++)
-//       printf(" ---");
-//    printf("\n");
-//    for (int i=0; i<6; i++) {
-//       if (board[i] > 9) {
-//          printf("|%d ",board[i]);
-//       } else {
-//          printf("| %d ",board[i]);
-//       }
-//    } printf("|\n");
-//    for (int i=0; i<6; i++)
-//       printf(" ---");
-//    printf("\n");
-//    for (int i=0; i<6; i++) {
-//       if (board[i] > 9) {
-//          printf("|%d ",board[i+6]);
-//       } else {
-//          printf("| %d ",board[i]);
-//       }
-//    } printf("|\n");
-//    for (int i=0; i<6; i++)
-//       printf(" ---");
-//    printf("\n");
-//    for (int i=0; i<6; i++) {
-//       printf("  %d ",i+1);
-//    }
-//    printf("\n\n");
-// }
+// --------------- play ---------------
+
+static int play(Game* g, int computerMove) {
+	if ( moveOkay(*g,computerMove) == 1 ) {
+		debug("improve score and apply move");
+		printf("Move okay");
+		if ( g->currentPlayer == 1 ) {
+			g->scoreA += playMoveAndTake(g->board,g->board,computerMove);
+		} else if ( g->currentPlayer == 2 ) {
+			g->scoreB += playMoveAndTake(g->board,g->board,computerMove);
+		} else {
+			debug("current player pb");
+		}
+		debug("test win");
+		if ( ( g->currentPlayer == 1 && g->scoreA > 24 ) || ( g->currentPlayer == 2 && g->scoreB > 24 ) ) {
+			g->finished = 1;
+			printf("Player %d win !\n",g->currentPlayer);
+		}
+		debug("test loose");
+		if ( empty(g->board,nextPlayer(g->currentPlayer)) && bestMove(g->board, g->currentPlayer) == -1 ) {
+			g->finished = 1;
+			printf("Player %d win !\n",g->currentPlayer);
+		}
+		g->currentPlayer = nextPlayer(g->currentPlayer);
+	} else if ( moveOkay(*g,computerMove) == 3 ) {
+		printf("You want to take everything from your opponent but you can't so you take nothing\n");
+		playMove(g->board,g->board,computerMove);
+		g->currentPlayer = nextPlayer(g->currentPlayer);
+		g->finished = 1;
+	} else if ( moveOkay(*g,computerMove) == 2 ) {
+		printf("It appear that you have win\n");
+		g->finished = 1;
+	} else if ( moveOkay(*g,computerMove) == 4) {
+		printf("It is impossible to play an empty box\n");
+		return 0;
+	} else {
+		printf("There is an error\n");
+		debugd(moveOkay(*g,computerMove));
+		g->finished = 1;
+	}
+
+	return 1;
+}
+
+// --------------- other ---------------
 
 static char convert(char userInput) {
    char res;

@@ -59,6 +59,7 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
 // --------------- show ---------------
 
 static void showHelp(Client client);
+static void showMenu(Client client);
 static void showUserList(Client client, Client listAllClients[]);
 static void showGameList(Client client, Game gameList[], Client clientList[]);
 
@@ -77,10 +78,14 @@ static Game gameFromList(Client client, int input, Game listAllGames[]);
 
 static int findEmptyGame(Game gameList[]);
 static int findGame(Game gameList[], int challenger, int challenged);
+static Game getClientGame(Client client, const Game gameList[]);
+
+// --------------- play ---------------
+
+static int play(Game* g, int computerMove);
 
 // --------------- other ---------------
 
-static void play(Client client, int input);
 static char convert(char userInput);
 
 #endif /* guard */
