@@ -295,6 +295,7 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
 // --------------- show ---------------
 
 static void showHelp(Client client) {
+   // TODO : reset buffer
    char buffer[BUF_SIZE];
    strcat(buffer, "/h\t\t\tshow this help\n");
    strcat(buffer, "/c {message}\t\tsend your message\n");
