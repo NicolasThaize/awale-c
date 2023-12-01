@@ -250,7 +250,7 @@ static void app(void) {
                            select_user_from_list(client,number,listAllClients);
                            break;
                         case GAME_LIST:
-                           select_game(client,number);
+                            // TODO : Implémenter quand il y aura une gamelist select_game_from_list(client,number, gameList);
                            break;
                         case GAME:
                            // test if the player is in a game and get the game
@@ -310,8 +310,18 @@ static Client select_user_from_list(Client client, int input, Client *listAllCli
       }
    }
 }
-static void select_game(Client client, int input) {
-   printf("Nothing for now\n");
+static Game select_game_from_list(Client client, int input, Game *listAllGames) {
+   int nbExistingGames = 1;
+
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllGames[i].active == 1)
+      {
+         if (nbExistingGames == input) {
+            return listAllGames[i];
+         }
+         nbExistingGames++;
+      }
+   }
 }
 
 static void showUserList(Client client, Client *listAllClients) {

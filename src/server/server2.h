@@ -60,7 +60,7 @@ static void send_message_to_all_clients(Client *clients, Client client, int actu
 static Client find_client(Client *clients, int numClient, const char* name);
 static void action(Client client, int input);
 static Client select_user_from_list(Client client, int input, Client *listAllClients);
-static void select_game(Client client, int input);
+static Game select_game_from_list(Client client, int input, Game *listAllGames);
 static void showUserList(Client client, Client *listAllClients);
 static void showGameList(Client client, Game *gameList, Client *clientList);
 static void play(Client client, int input);
