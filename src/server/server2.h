@@ -46,7 +46,6 @@ typedef struct in_addr IN_ADDR;
 #define GAME_LIST 'g'
 #define GAME 'p'
 
-
 // --------------- app ---------------
 
 static void app(void);
