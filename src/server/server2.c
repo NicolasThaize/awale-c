@@ -93,6 +93,14 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
    }
 }
 
+static int getSocketIdByUsername(const char *username, const Client *listAllClient) {
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (listAllClient[i].name == username) {
+         return listAllClient[i].sock;
+      }
+   }
+}
+
 static void app(void) {
    SOCKET sock = init_connection();
    char buffer[BUF_SIZE];
