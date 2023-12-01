@@ -112,6 +112,7 @@ static void app(void) {
                            printf("Name: %s\n", name);
                            // find the corresponding game from listOfGames
                            int id = getSocketIdByUsername(name,listAllClients);
+                           // TODO : handle id = -1
                            int indice = findGame(listOfGames, id, client.sock);
                            listOfGames[indice].active = 1;
                            listOfGames[indice].finished = 0;
@@ -124,6 +125,7 @@ static void app(void) {
                            printf("Name: %s\n", name);
                            // find the corresponding game from listOfGames
                            int id = getSocketIdByUsername(name,listAllClients);
+                           // TODO : handle id = -1
                            int indice = findGame(listOfGames, id, client.sock);
                            listOfGames[indice].active = 0;
                            listOfGames[indice].finished = 1;
@@ -201,11 +203,13 @@ static void app(void) {
                         case GAME_LIST:
                            int indice = findEmptyGame(listOfGames);
                            Game gSelected = gameFromList(client,number, listOfGames);
-                           // TODO
+                           // TODO handle game not found
+                           // TODO next
                            break;
                         case GAME:
                            // test if the player is in a game and get the game
                            // TODO : Implémenter quand il y aura une gamelist Game g = getClientGame(client, listOfGames);
+                           // TODO handle game not found
                            // TODO : Implémenter quand il y aura une gamelist play(&g, convert(number)); // to implement (arguments surely missing)
                            // TODO : Implémenter quand il y aura une gamelist printf("-------------- TOUR %d ----------------",nbTour);
 		                     // TODO : Implémenter quand il y aura une gamelist show_board(g.board);
@@ -291,11 +295,11 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
 // --------------- show ---------------
 
 static void showHelp(Client client) {
-   char buffer[BUF_SIZE]; 
+   char buffer[BUF_SIZE];
    strcat(buffer, "/h\t\t\tshow this help\n");
-   strcat(buffer, "/c {message}\tsend your message\n");
-   strcat(buffer, "/y {player}\taccept challenge of the player {player}\n");
-   strcat(buffer, "/n {player}\trefuse challenge of the player {player}\n");
+   strcat(buffer, "/c {message}\t\tsend your message\n");
+   strcat(buffer, "/y {player}\t\taccept challenge of the player {player}\n");
+   strcat(buffer, "/n {player}\t\trefuse challenge of the player {player}\n");
    strcat(buffer, "/a\t\t\tgive up the game\n");
    strcat(buffer, "/q\t\t\tgo back the previous menu (don't abandon in game)\n");
    strcat(buffer, "{N}\t\t\texecute the action number {N}\n");
@@ -350,7 +354,6 @@ static Client getClient(int id, Client allClients[], int nbClients) {
       }
    }
    debug("Id not found");
-   // find smth to return
    Client c;
    c.sock = -1;
    return c;
@@ -363,7 +366,9 @@ static Client findClient(Client clients[], int numClients, const char name[]) {
       }
    }
    debug("No clients found !");
-   return clients[0]; // find a better stop case
+   Client c;
+   c.sock = -1;
+   return c;
 }
 
 static int getSocketIdByUsername(const char username[], const Client listAllClient[]) {
@@ -372,6 +377,7 @@ static int getSocketIdByUsername(const char username[], const Client listAllClie
          return listAllClient[i].sock;
       }
    }
+   return -1;
 }
 
 // --------------- from list ---------------
@@ -388,6 +394,10 @@ static Client userFromList(Client client, int input, Client listAllClients[]) {
          nbExistingUsers++;
       }
    }
+   debug("No clients found !");
+   Client c;
+   c.sock = -1;
+   return c;
 }
 
 static Game gameFromList(Client client, int input, Game listAllGames[]) {
@@ -402,6 +412,11 @@ static Game gameFromList(Client client, int input, Game listAllGames[]) {
          nbExistingGames++;
       }
    }
+   debug("No game found !");
+   Game g;
+   g.active = 0;
+   g.finished = 1;
+   return g;
 }
 
 // --------------- game ---------------
@@ -433,7 +448,11 @@ static Game getClientGame(Client client, const Game gameList[]) {
          return gameList[client.subscribedGame];
       }
    }
-   debug("No game found");
+   debug("No game found !");
+   Game g;
+   g.active = 0;
+   g.finished = 1;
+   return g;
 }
 
 // --------------- play ---------------
