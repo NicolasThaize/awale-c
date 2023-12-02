@@ -308,7 +308,15 @@ static void showHelp(Client client) {
    writeClient(client.sock, buffer);
 }
 
-static void showMenu(Client client) {}
+static void showMenu(Client client) {
+   char buffer[BUF_SIZE] = "";
+   strcat(buffer, "Welcome to AWALE :\n");
+   strcat(buffer, "1. Play\n");
+   strcat(buffer, "2. Spectate a game\n");
+   strcat(buffer, "0. Disconnect\n");
+
+   writeClient(client.sock, buffer);
+}
 
 static void showUserList(Client client, Client listAllClients[]) {
    char usersList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des utilisateurs :\n";
