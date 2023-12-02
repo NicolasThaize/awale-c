@@ -196,13 +196,14 @@ static void app(void) {
                            } else {
                               debug("Bad number from main menu");
                            }
+                           break;
                         case USER_LIST:
-                           Client cSelected = userFromList(client,number,listAllClients);
+                           // TODO Client cSelected = userFromList(client,number,listAllClients);
                            // TODO
                            break;
                         case GAME_LIST:
-                           int indice = findEmptyGame(listOfGames);
-                           Game gSelected = gameFromList(client,number, listOfGames);
+                           // TODO int indice = findEmptyGame(listOfGames);
+                           // TODO Game gSelected = gameFromList(client,number, listOfGames);
                            // TODO handle game not found
                            // TODO next
                            break;
@@ -295,8 +296,7 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
 // --------------- show ---------------
 
 static void showHelp(Client client) {
-   // TODO : reset buffer
-   char buffer[BUF_SIZE];
+   char buffer[BUF_SIZE] = "";
    strcat(buffer, "/h\t\t\tshow this help\n");
    strcat(buffer, "/c {message}\t\tsend your message\n");
    strcat(buffer, "/y {player}\t\taccept challenge of the player {player}\n");
