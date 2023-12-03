@@ -166,12 +166,6 @@ static void app(void) {
                         }
                         break;
                      case 'q': // quit
-                        // writeClient(client.sock, "You just disconnected from server");
-                        // if (FD_ISSET(client.sock, &rdfs)) {
-                        //    printf("Bazouzou");
-                        //    FD_CLR(client.sock, &rdfs);
-                        // }
-                        // printf("Bazouzou2");
                         if (client.state == 'm') {
                            close(client.sock);
                            max = max - 1;
@@ -208,7 +202,8 @@ static void app(void) {
                      switch (client.state) {
                         case MAIN_MENU:
                            if (number == 0) {
-                              // quit
+                              close(client.sock);
+                              max = max - 1;
                            } else if (number == 1) {
                               debug("Hello !!");
                               // play
@@ -225,6 +220,7 @@ static void app(void) {
                            }
                            break;
                         case USER_LIST:
+
                            cSelected = userFromList(client,number,listAllClients);
                            printf("%s", cSelected.name);
                            break;
@@ -348,7 +344,7 @@ static void showMenu(Client client) {
 }
 
 static void showUserList(Client client, Client listAllClients[]) {
-   printf("Showing user list");
+   printf("Showing user list\n");
    char usersList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des utilisateurs :\n";
    int nbUsers = 0;
 
@@ -358,7 +354,7 @@ static void showUserList(Client client, Client listAllClients[]) {
          char userChars[SMALL_SIZE];
          sprintf(userChars, "%d. %s\n",nbUsers,listAllClients[i].name);
 
-         // strcat(strcat(usersList, strcat(strcat(nbUsersChars, ". "), listAllClients[i].name)), "\n");
+         //strcat(strcat(usersList, strcat(strcat(nbUsers, ". "), listAllClients[i].name)), "\n");
          strcat(usersList, userChars);
       }
       else {
@@ -366,6 +362,10 @@ static void showUserList(Client client, Client listAllClients[]) {
       }
    }
 
+   if (nbUsers == 0) {
+      strcat(usersList, "Aucun joueur connecté\n");
+   }
+   
    writeClient(client.sock, usersList);
 }
 
