@@ -46,6 +46,12 @@ typedef struct in_addr IN_ADDR;
 #define GAME_LIST 'g'
 #define GAME 'p'
 
+#define green	"\033[0;32m"
+#define white	"\033[0;37m"
+#define red		"\033[0;31m"
+#define yellow	"\033[0;33m"
+#define blue	"\033[0;36m"
+
 // --------------- app ---------------
 
 static void app(void);
@@ -58,6 +64,7 @@ static void switchDiffusion(Client *client, char to, int diffusionMainMenu[MAX_C
 
 // --------------- show ---------------
 
+static void showChallenge(char challengerName[SMALL_SIZE], Client client);
 static void showHelp(Client client);
 static void showMenu(Client client);
 static void showUserList(Client client, Client listAllClients[]);
@@ -71,8 +78,8 @@ static int getSocketIdByUsername(const char username[], const Client listAllClie
 
 // --------------- from list ---------------
 
-static Client userFromList(Client client, int input, Client listAllClients[]);
-static Game gameFromList(Client client, int input, Game listAllGames[]);
+static Client userFromList(int input, Client listAllClients[]);
+static Game gameFromList(int input, Game listAllGames[]);
 
 // --------------- game ---------------
 

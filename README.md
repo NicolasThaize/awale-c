@@ -64,9 +64,10 @@ list of players that have subscribed to a diffusion -> correspond to a certain s
 
 - when disconnecting send too many disconnected messages
 - message received when start typing are not well printed on the terminal
-- stop server when /q
+- show server disconected when /q
 - client can't connect with another port
-- 
+- get the right user from the number of the user list (may change during the time the client type the number)
+- idem for the game
 
 ## todo
 

@@ -95,6 +95,7 @@ static void app(void) {
          debugc(c.state);
          debugd(c.state);
          showMenu(c);
+         // showChallenge("mat", c); // just for test
       } else {
          for (int i=0; i<nbClients; i++) {
             /* a client is talking */
@@ -199,6 +200,7 @@ static void app(void) {
                      printf("Number: %d, State: %c\n", number, client.state);
                      debugd(number);
                      Client cSelected;
+                     Game gSelected;
                      switch (client.state) {
                         case MAIN_MENU:
                            if (number == 0) {
@@ -220,13 +222,22 @@ static void app(void) {
                            }
                            break;
                         case USER_LIST:
-
-                           cSelected = userFromList(client,number,listAllClients);
+                           // find user
+                           cSelected = userFromList(number,listAllClients); // how to get the right number ? (the player 2 disapear)
+                           // add the game
+                           int indice = findEmptyGame(listOfGames);
+                           listOfGames[indice].active = 0;
+                           listOfGames[indice].finished = 0;
+                           listOfGames[indice].challenger = client.sock;
+                           listOfGames[indice].challenged = cSelected.sock;
                            printf("%s", cSelected.name);
+                           // inform the challenged
+                           showChallenge(client.name, cSelected);
                            break;
                         case GAME_LIST:
+                           gSelected = gameFromList(number, listOfGames); // how to get the right number ? (ex: the game 2 disapear)
+                           
                            // TODO int indice = findEmptyGame(listOfGames);
-                           // TODO Game gSelected = gameFromList(client,number, listOfGames);
                            // TODO handle game not found
                            // TODO next
                            break;
@@ -321,6 +332,31 @@ static void switchDiffusion(Client *client, char to, int diffusionMainMenu[MAX_C
 }
 
 // --------------- show ---------------
+
+static void showChallenge(char challengerName[SMALL_SIZE], Client client) {
+   char buffer[BUF_SIZE] = "";
+   // strcat(buffer, yellow);
+   strcat(buffer, challengerName);
+   // strcat(buffer, white);
+   strcat(buffer, " challenge you !\n");
+
+   strcat(buffer, green);
+   strcat(buffer, "/y ");
+   strcat(buffer, challengerName);
+   strcat(buffer, white);
+   // strcat(buffer, blue);
+   strcat(buffer, "\tto accept\n");
+
+   strcat(buffer, red);
+   strcat(buffer, "/n ");
+   strcat(buffer, challengerName);
+   strcat(buffer, white);
+   // strcat(buffer, blue);
+   strcat(buffer, "\tto refuse\n");
+   // strcat(buffer, white);
+
+   writeClient(client.sock, buffer);
+}
 
 static void showHelp(Client client) {
    char buffer[BUF_SIZE] = "";
@@ -427,7 +463,7 @@ static int getSocketIdByUsername(const char username[], const Client listAllClie
 
 // --------------- from list ---------------
 
-static Client userFromList(Client client, int input, Client listAllClients[]) {
+static Client userFromList(int input, Client listAllClients[]) {
    int nbExistingUsers = 1;
 
    for (int i = 0; i < MAX_CLIENTS; i++) {
@@ -445,7 +481,7 @@ static Client userFromList(Client client, int input, Client listAllClients[]) {
    return c;
 }
 
-static Game gameFromList(Client client, int input, Game listAllGames[]) {
+static Game gameFromList(int input, Game listAllGames[]) {
    int nbExistingGames = 1;
 
    for (int i = 0; i < MAX_CLIENTS; i++) {
