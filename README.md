@@ -64,7 +64,8 @@ list of players that have subscribed to a diffusion -> correspond to a certain s
 
 - when disconnecting send too many disconnected messages
 - message received when start typing are not well printed on the terminal
-- 
+- stop server when /q
+- client can't connect with another port
 - 
 
 ## todo

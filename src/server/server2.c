@@ -30,7 +30,7 @@ static void app(void) {
    int nbClients = 0;
    int max = sock;
    /* an array for all clients */
-   Client listAllClients[MAX_CLIENTS]; // listAllClients
+   Client listAllClients[MAX_CLIENTS] = { [0 ... MAX_CLIENTS-1] = {.sock = IMPOSSIBLE_ID} }; // listAllClients
    int diffusionMainMenu[MAX_CLIENTS] = { [0 ... MAX_CLIENTS-1] = IMPOSSIBLE_ID }; // identifiant client
    int diffusionUsersList[MAX_CLIENTS] = { [0 ... MAX_CLIENTS-1] = IMPOSSIBLE_ID };
    int diffusionGamesList[MAX_CLIENTS] = { [0 ... MAX_CLIENTS-1] = IMPOSSIBLE_ID };
@@ -86,9 +86,11 @@ static void app(void) {
 
          Client c = { csock };
          strncpy(c.name, buffer, SMALL_SIZE - 1);
+         c.state = MAIN_MENU;
          listAllClients[nbClients] = c;
          nbClients++;
-         c.state = MAIN_MENU;
+         debugc(c.state);
+         debugd(c.state);
          showMenu(c);
       } else {
          for (int i=0; i<nbClients; i++) {
@@ -171,8 +173,8 @@ static void app(void) {
                         if (client.state == 'm') {
                            close(client.sock);
                         } else {
-                           int indice = 2; // TODO
-                           switchDiffusion(client.state,MAIN_MENU,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                           int indice = client.subscribedGame;
+                           switchDiffusion(client.state,MAIN_MENU,client.sock,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                         }
                         break;
                      case 'h': // help
@@ -191,8 +193,9 @@ static void app(void) {
                      default:
                         // diffusion = listAllClients;
                         // sprintf(buffer, "%s use unknown / command", client.name);
-                        strncpy(buffer, client.name, BUF_SIZE-1);
-                        strncat(buffer, " use unknown / command", sizeof buffer - strlen(buffer)-1);
+                        showHelp(client);
+                        // strncpy(buffer, client.name, BUF_SIZE-1);
+                        // strncat(buffer, " use unknown / command", sizeof buffer - strlen(buffer)-1);
                         break;
                      }
                   } else if (sscanf(buffer, "%d", &number) == 1) {
@@ -204,15 +207,16 @@ static void app(void) {
                            if (number == 0) {
                               // quit
                            } else if (number == 1) {
+                              debug("Hello !!");
                               // play
                               showUserList(client,listAllClients);
                               int indice = -1; // TODO
-                              switchDiffusion(client.state,USER_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                              switchDiffusion(client.state,USER_LIST,client.sock,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                            } else if (number == 2) {
                               // spectate
                               showGameList(client,listOfGames,listAllClients);
                               int indice = -1; // TODO
-                              switchDiffusion(client.state,GAME_LIST,client.sock,client.subscribedGame,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                              switchDiffusion(client.state,GAME_LIST,client.sock,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                            } else {
                               debug("Bad number from main menu");
                            }
@@ -237,7 +241,7 @@ static void app(void) {
                            break;
                         default:
                            printf("%c", client.state);
-                           printf("%s", client.state);
+                           printf("%d", client.state);
                            debugc(client.state);
                            break;
                      }
@@ -277,7 +281,7 @@ static void subscribeToDiffusion(int diffusion[], int max_size, int socketId) {
 }
 
 
-static void switchDiffusion(char from, char to, int socketId, int subscribedGame, int diffusionMainMenu[MAX_CLIENTS], int diffusionUsersList[MAX_CLIENTS], int diffusionGamesList[MAX_CLIENTS], int diffusionGames[MAX_CLIENTS]) {
+static void switchDiffusion(char from, char to, int socketId, int diffusionMainMenu[MAX_CLIENTS], int diffusionUsersList[MAX_CLIENTS], int diffusionGamesList[MAX_CLIENTS], int *diffusionOfTheGame) {
    switch (from) {
       case MAIN_MENU:
          unsubscribeFromDiffusion(diffusionMainMenu, MAX_CLIENTS, socketId);
@@ -289,7 +293,7 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
          unsubscribeFromDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
          break;
       case GAME:
-         unsubscribeFromDiffusion(&diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
+         unsubscribeFromDiffusion(diffusionOfTheGame, MAX_CLIENTS, socketId);
          break;
       
       default:
@@ -307,7 +311,7 @@ static void switchDiffusion(char from, char to, int socketId, int subscribedGame
          subscribeToDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
          break;
       case GAME:
-         subscribeToDiffusion(&diffusionGames[subscribedGame], MAX_CLIENTS, socketId);
+         subscribeToDiffusion(diffusionOfTheGame, MAX_CLIENTS, socketId);
          break;
       
       default:
@@ -346,12 +350,16 @@ static void showUserList(Client client, Client listAllClients[]) {
    int nbUsers = 0;
 
    for (int i = 0; i < MAX_CLIENTS; i++) {
-      if (listAllClients[i].sock != IMPOSSIBLE_ID) {
+      if ( listAllClients[i].sock != IMPOSSIBLE_ID && listAllClients[i].sock != client.sock ) { // exist & not itself
          nbUsers++;
-         char nbUsersChars[SMALL_SIZE];
-         sprintf(nbUsersChars, "%d", nbUsers);
+         char userChars[SMALL_SIZE];
+         sprintf(userChars, "%d. %s\n",nbUsers,listAllClients[i].name);
 
-         strcat(strcat(usersList, strcat(strcat(nbUsersChars, ". "), listAllClients[i].name)), "\n");
+         // strcat(strcat(usersList, strcat(strcat(nbUsersChars, ". "), listAllClients[i].name)), "\n");
+         strcat(usersList, userChars);
+      }
+      else {
+         // debug("IMPOSSIBLE ID");
       }
    }
 

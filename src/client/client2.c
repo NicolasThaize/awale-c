@@ -5,8 +5,11 @@
 
 #include "client2.h"
 
-static void init(void)
-{
+int PORT = 1977;
+
+
+
+static void init(void) {
 #ifdef WIN32
    WSADATA wsa;
    int err = WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -18,15 +21,13 @@ static void init(void)
 #endif
 }
 
-static void end(void)
-{
+static void end(void) {
 #ifdef WIN32
    WSACleanup();
 #endif
 }
 
-static void app(const char *address, const char *name)
-{
+static void app(const char *address, const char *name) {
    SOCKET sock = init_connection(address);
    char buffer[BUF_SIZE];
 
@@ -125,17 +126,14 @@ static int init_connection(const char *address)
    return sock;
 }
 
-static void end_connection(int sock)
-{
+static void end_connection(int sock) {
    closesocket(sock);
 }
 
-static int read_server(SOCKET sock, char *buffer)
-{
+static int read_server(SOCKET sock, char *buffer) {
    int n = 0;
 
-   if((n = recv(sock, buffer, BUF_SIZE - 1, 0)) < 0)
-   {
+   if((n = recv(sock, buffer, BUF_SIZE - 1, 0)) < 0) {
       perror("recv()");
       exit(errno);
    }
@@ -145,23 +143,21 @@ static int read_server(SOCKET sock, char *buffer)
    return n;
 }
 
-static void write_server(SOCKET sock, const char *buffer)
-{
-   if(send(sock, buffer, strlen(buffer), 0) < 0)
-   {
+static void write_server(SOCKET sock, const char *buffer) {
+   if(send(sock, buffer, strlen(buffer), 0) < 0) {
       perror("send()");
       exit(errno);
    }
 }
 
-int main(int argc, char **argv)
-{
-   if(argc < 2)
-   {
-      printf("Usage : %s [address] [pseudo]\n", argv[0]);
+int main(int argc, char **argv) {
+   if( argc < 3 || argc > 4 ) {
+      printf("%d",argc);
+      printf("Usage : %s [address] [pseudo] (port)\n", argv[0]);
       return EXIT_FAILURE;
+   } else if (argc == 4) {
+      sscanf(argv[4],"%d",&PORT);
    }
-
    init();
 
    app(argv[1], argv[2]);
@@ -170,5 +166,6 @@ int main(int argc, char **argv)
 
    return EXIT_SUCCESS;
 }
+
 
 
