@@ -146,7 +146,9 @@ static void app(void) {
                               debug("NOT FOUND !");
                            }
                            // TODO : send the board to the players
-                           showBoard(listOfGames[indice].board);
+                           showBoard(*client, listOfGames[indice].board);
+                           showBoard(*opponent, listOfGames[indice].board);
+                           show_board(listOfGames[indice].board);
                            // TODO : request the move of the first player
                            if ( listOfGames[indice].currentPlayer == 2 ) {
                               showMoveRequest(*client);
@@ -177,6 +179,8 @@ static void app(void) {
 
                            listOfGames[indice].active = 0;
                            listOfGames[indice].finished = 1;
+
+                           // TODO : show to the users that the challenge is refused
                         } else {
                            debug("Problem sscanf");
                         }
@@ -362,7 +366,7 @@ static void switchDiffusion(Client *client, char to, int diffusionMainMenu[MAX_C
          break;
    }
    printf("from: %c, to: %c\n", client->state, to);
-   client->state = to; // TODO : Je ne sais pas pk ça ne change pas le client.state au delà du code
+   client->state = to; // change the state of the client
    switch (to){
       case MAIN_MENU:
          subscribeToDiffusion(diffusionMainMenu, MAX_CLIENTS, client->sock);
@@ -384,6 +388,63 @@ static void switchDiffusion(Client *client, char to, int diffusionMainMenu[MAX_C
 }
 
 // --------------- show ---------------
+
+static void showBoard(const Client client, const int board[]) {
+	char buffer[BUF_SIZE] = "";
+   char tmp[SMALL_SIZE] = "";
+	strcat(buffer, "\n");
+	for (int i=12; i>9; i--) {
+		sprintf(tmp, "  %d",i);
+      strcat(buffer,tmp);
+	}
+	for (int i=9; i>6; i--) {
+		sprintf(tmp, "  %d ",i);
+      strcat(buffer,tmp);
+	}
+	strcat(buffer, "\n");
+	for (int i=0; i<6; i++)
+		strcat(buffer, " ---");
+	strcat(buffer, "\n");
+	for (int i=0; i<6; i++) {
+		if ( board[i] == 1 || board[i] == 2 ) {
+         sprintf(tmp, "%s|%s %d%s ",blue,red,board[i],white);
+         strcat(buffer,tmp);
+      } else if (board[i] > 9) {
+			sprintf(tmp, "%s|%s%d%s ",blue,green,board[i],white);
+         strcat(buffer,tmp);
+		} else {
+			sprintf(tmp, "%s|%s %d%s ",blue,yellow,board[i],white);
+         strcat(buffer,tmp);
+		}
+	} sprintf(tmp, "%s|%s\n",blue,white);
+	strcat(buffer, tmp);
+	for (int i=0; i<6; i++)
+		strcat(buffer, " ---");
+	strcat(buffer, "\n");
+	for (int i=0; i<6; i++) {
+		if ( board[i+6] == 1 || board[i+6] == 2 ) {
+         sprintf(tmp, "%s|%s %d%s ",blue,red,board[i+6],white);
+         strcat(buffer,tmp);
+      } else if (board[i+6] > 9) {
+			sprintf(tmp, "%s|%s%d%s ",blue,green,board[i+6],white);
+         strcat(buffer,tmp);
+		} else {
+			sprintf(tmp, "%s|%s %d%s ",blue,yellow,board[i+6],white);
+         strcat(buffer,tmp);
+		}
+	} sprintf(tmp, "%s|%s\n",blue,white);
+	strcat(buffer, tmp);
+	for (int i=0; i<6; i++)
+		strcat(buffer, " ---");
+	strcat(buffer, "\n");
+	for (int i=0; i<6; i++) {
+		sprintf(tmp, "  %d ",i+1);
+      strcat(buffer,tmp);
+	}
+	strcat(buffer, "\n\n");
+
+   writeClient(client.sock, buffer);
+}
 
 static void showMoveRequest(Client client) {
    char buffer[BUF_SIZE] = "";
@@ -420,13 +481,21 @@ static void showChallenge(char challengerName[SMALL_SIZE], Client client) {
 
 static void showHelp(Client client) {
    char buffer[BUF_SIZE] = "";
-   strcat(buffer, "/h\t\t\tshow this help\n");
-   strcat(buffer, "/c {message}\t\tsend your message\n");
-   strcat(buffer, "/y {player}\t\taccept challenge of the player {player}\n");
-   strcat(buffer, "/n {player}\t\trefuse challenge of the player {player}\n");
-   strcat(buffer, "/a\t\t\tgive up the game\n");
-   strcat(buffer, "/q\t\t\tgo back the previous menu (don't abandon in game)\n");
-   strcat(buffer, "{N}\t\t\texecute the action number {N}\n");
+   char tmp[SMALL_SIZE*3] = "";
+   sprintf(tmp, "%s/h%s\t\t\tshow this help\n",blue,white);
+   strcat(buffer, tmp);
+   sprintf(tmp, "%s/c {message}%s\t\tsend your message\n",blue,white);
+   strcat(buffer, tmp);
+   sprintf(tmp, "%s/y {player}%s\t\taccept challenge of the player {player}\n",blue,white);
+   strcat(buffer, tmp);
+   sprintf(tmp, "%s/n {player}%s\t\trefuse challenge of the player {player}\n",blue,white);
+   strcat(buffer, tmp);
+   sprintf(tmp, "%s/a%s\t\t\tgive up the game\n",blue,white);
+   strcat(buffer, tmp);
+   sprintf(tmp, "%s/q%s\t\t\texit or go back the previous menu (without giving up)\n",blue,white);
+   strcat(buffer, tmp);
+   sprintf(tmp, "%s{N}%s\t\t\texecute the action number {N}\n",blue,white);
+   strcat(buffer, tmp);
 
    writeClient(client.sock, buffer);
 }
@@ -441,7 +510,7 @@ static void showMenu(Client client) {
    writeClient(client.sock, buffer);
 }
 
-static int showUserList(Client client, Client listAllClients[]) {
+static int showUserList(Client client, Client listAllClients[MAX_CLIENTS]) {
    printf("Showing user list\n");
    char usersList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des utilisateurs :\n";
    int nbUsers = 0;
@@ -449,7 +518,7 @@ static int showUserList(Client client, Client listAllClients[]) {
    for (int i = 0; i < MAX_CLIENTS; i++) {
       if ( listAllClients[i].sock != IMPOSSIBLE_ID && listAllClients[i].sock != client.sock ) { // exist & not itself
          nbUsers++;
-         char userChars[SMALL_SIZE];
+         char userChars[SMALL_SIZE*2];
          sprintf(userChars, "%d. %s\n",nbUsers,listAllClients[i].name);
 
          //strcat(strcat(usersList, strcat(strcat(nbUsers, ". "), listAllClients[i].name)), "\n");
@@ -460,14 +529,14 @@ static int showUserList(Client client, Client listAllClients[]) {
       }
    }
    if (nbUsers == 0) {
-      strcat(usersList, "No connected players\n");
+      strcat(usersList, "No connected players\n\n");
    }
    
    writeClient(client.sock, usersList);
    return nbUsers;
 }
 
-static int showGameList(Client client, Game gameList[], Client clientList[]) {
+static int showGameList(Client client, Game gameList[MAX_GAMES], Client clientList[MAX_CLIENTS]) {
    char gamesList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des parties :\n";
    int nbGames = 0;
 
@@ -504,7 +573,7 @@ static Client getClient(const int id, const Client allClients[MAX_CLIENTS], cons
    return c;
 }
 
-static Client* findClient(const Client clients[MAX_CLIENTS], const char name[SMALL_SIZE]) {
+static Client* findClient(Client clients[MAX_CLIENTS], const char name[SMALL_SIZE]) {
    for (int i=0; i<MAX_CLIENTS; i++) {
       if ( strcmp(clients[i].name,name) == 0 ) {
          return &clients[i];

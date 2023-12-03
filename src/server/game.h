@@ -29,8 +29,8 @@ char nextPlayer(char player);
 char empty(int board[12], char side);
 int sumSide(int board[12], char side);
 int bestMove(int board[12], char player);
-int moveOkay(Game g, int move);
-void showBoard(const int board[]);
+char moveOkay(Game g, int move);
+void show_board(const int board[]);
 int getUserInput(Game g);
 int playTheMove(Game* g, int computerMove);
 
