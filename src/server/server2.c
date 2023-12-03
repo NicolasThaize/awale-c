@@ -210,12 +210,12 @@ static void app(void) {
                               debug("Hello !!");
                               // play
                               showUserList(client,listAllClients);
-                              int indice = -1; // TODO
+                              int indice = client.subscribedGame;
                               switchDiffusion(client.state,USER_LIST,client.sock,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                            } else if (number == 2) {
                               // spectate
                               showGameList(client,listOfGames,listAllClients);
-                              int indice = -1; // TODO
+                              int indice = client.subscribedGame;
                               switchDiffusion(client.state,GAME_LIST,client.sock,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                            } else {
                               debug("Bad number from main menu");
