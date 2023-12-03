@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
       printf("Usage : %s [address] [pseudo] (port)\n", argv[0]);
       return EXIT_FAILURE;
    } else if (argc == 4) {
-      sscanf(argv[4],"%d",&PORT);
+      sscanf(argv[3],"%d",&PORT);
    }
    init();
 

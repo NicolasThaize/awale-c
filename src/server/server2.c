@@ -100,18 +100,20 @@ static void app(void) {
          for (int i=0; i<nbClients; i++) {
             /* a client is talking */
             if ( FD_ISSET(listAllClients[i].sock, &rdfs) ) {
-               Client client = listAllClients[i];
+               Client* client = &listAllClients[i];
                int c = readClient(listAllClients[i].sock, buffer);
                /* client disconnected */
                if (c == 0) {
                   closesocket(listAllClients[i].sock);
                   removeClient(listAllClients, i, &nbClients);
-                  strncpy(buffer, client.name, BUF_SIZE - 1);
+                  strncpy(buffer, client->name, BUF_SIZE - 1);
                   strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
-                  sendMessage2clients(listAllClients, client, nbClients, buffer, 1);
+                  sendMessage2clients(listAllClients, *client, nbClients, buffer, 1);
                }
                else {
                   // Client* diffusion;
+                  debug("STATE:");
+                  debugc(client->state);
                   if ( buffer[0] == '/' ) {
                      switch (buffer[1]) {
                      case 'y': // yes
@@ -120,13 +122,13 @@ static void app(void) {
                            // find the corresponding game from listOfGames
                            int id = getSocketIdByUsername(name,listAllClients);
                            if (id == -1) {
-                              writeClient(client.sock, "Cannot accept a challenge from a disconnected player");
+                              writeClient(client->sock, "Cannot accept a challenge from a disconnected player");
                               continue;
                            }
                            
-                           int indice = findGame(listOfGames, id, client.sock);
+                           int indice = findGame(listOfGames, id, client->sock);
                            if (indice == -1) {
-                              writeClient(client.sock, "Error, cannot accept a challenge that does not exist");
+                              writeClient(client->sock, "Error, cannot accept a challenge that does not exist");
                               continue;
                            }
 
@@ -142,13 +144,13 @@ static void app(void) {
                            // find the corresponding game from listOfGames
                            int id = getSocketIdByUsername(name,listAllClients);
                             if (id == -1) {
-                              writeClient(client.sock, "Cannot decline a challenge from a disconnected player");
+                              writeClient(client->sock, "Cannot decline a challenge from a disconnected player");
                               continue;
                            }
 
-                           int indice = findGame(listOfGames, id, client.sock);
+                           int indice = findGame(listOfGames, id, client->sock);
                            if (indice == -1) {
-                              writeClient(client.sock, "Error, cannot decline a challenge that does not exist");
+                              writeClient(client->sock, "Error, cannot decline a challenge that does not exist");
                               continue;
                            }
 
@@ -161,62 +163,69 @@ static void app(void) {
                      case 'c': // chat
                         if (sscanf(buffer, "/c %[^\n]", buffer) == 1) {
                            printf("Remaining: %s\n", buffer);
-                           sendMessage2clients(listAllClients, client, nbClients, buffer, 0);
+                           sendMessage2clients(listAllClients, *client, nbClients, buffer, 0);
                         } else {
                            debug("Problem sscanf");
                         }
                         break;
                      case 'q': // quit
-                        if (client.state == 'm') {
-                           close(client.sock);
+                        if (client->state == 'm') {
+                           close(client->sock);
                            max = max - 1;
                         } else {
-                           int indice = client.subscribedGame;
+                           int indice = client->subscribedGame;
                            switchDiffusion(&client,MAIN_MENU,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                         }
                         break;
                      case 'h': // help
-                        showHelp(client);
+                        showHelp(*client);
                         break;
                      case 'a': // abandon
-                        if (client.state == GAME) {
-                           if (client.sock == listOfGames[client.subscribedGame].challenged ||
-                                 client.sock == listOfGames[client.subscribedGame].challenged) {
+                        if (client->state == GAME) {
+                           if (client->sock == listOfGames[client->subscribedGame].challenged ||
+                                 client->sock == listOfGames[client->subscribedGame].challenged) {
                               // show win
-                              listOfGames[client.subscribedGame].active = 0;
-                              listOfGames[client.subscribedGame].finished = 1;
+                              listOfGames[client->subscribedGame].active = 0;
+                              listOfGames[client->subscribedGame].finished = 1;
                            }
                         }
                         break;
                      default:
                         // diffusion = listAllClients;
-                        // sprintf(buffer, "%s use unknown / command", client.name);
-                        showHelp(client);
-                        // strncpy(buffer, client.name, BUF_SIZE-1);
+                        // sprintf(buffer, "%s use unknown / command", client->name);
+                        showHelp(*client);
+                        // strncpy(buffer, client->name, BUF_SIZE-1);
                         // strncat(buffer, " use unknown / command", sizeof buffer - strlen(buffer)-1);
                         break;
                      }
                   } else if (sscanf(buffer, "%d", &number) == 1) {
-                     printf("Number: %d, State: %c\n", number, client.state);
+                     printf("Number: %d, State: %c\n", number, client->state);
                      debugd(number);
                      Client cSelected;
                      Game gSelected;
-                     switch (client.state) {
+                     switch (client->state) {
                         case MAIN_MENU:
+                           debugc(client->state);
                            if (number == 0) {
-                              close(client.sock);
+                              close(client->sock);
                               max = max - 1;
                            } else if (number == 1) {
                               debug("Hello !!");
                               // play
-                              showUserList(client,listAllClients);
-                              int indice = client.subscribedGame;
-                              switchDiffusion(&client,USER_LIST,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                              if ( showUserList(*client,listAllClients) != 0 ) {
+                                 int indice = client->subscribedGame;
+                                 switchDiffusion(client,USER_LIST,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                              } else {
+                                 showMenu(*client);
+                              }
                            } else if (number == 2) {
                               // spectate
-                              showGameList(client,listOfGames,listAllClients);
-                              int indice = client.subscribedGame;
-                              switchDiffusion(&client,GAME_LIST,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                              if ( showGameList(*client,listOfGames,listAllClients) != 0 ) {
+                                 int indice = client->subscribedGame;
+                                 switchDiffusion(client,GAME_LIST,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                              } else {
+                                 showMenu(*client);
+                              }
                            } else {
                               debug("Bad number from main menu");
                            }
@@ -228,11 +237,11 @@ static void app(void) {
                            int indice = findEmptyGame(listOfGames);
                            listOfGames[indice].active = 0;
                            listOfGames[indice].finished = 0;
-                           listOfGames[indice].challenger = client.sock;
+                           listOfGames[indice].challenger = client->sock;
                            listOfGames[indice].challenged = cSelected.sock;
                            printf("%s", cSelected.name);
                            // inform the challenged
-                           showChallenge(client.name, cSelected);
+                           showChallenge(client->name, cSelected);
                            break;
                         case GAME_LIST:
                            gSelected = gameFromList(number, listOfGames); // how to get the right number ? (ex: the game 2 disapear)
@@ -250,13 +259,13 @@ static void app(void) {
 		                     // TODO : Implémenter quand il y aura une gamelist show_board(g.board);
                            break;
                         default:
-                           printf("%c", client.state);
-                           printf("%d", client.state);
-                           debugc(client.state);
+                           printf("%c", client->state);
+                           printf("%d", client->state);
+                           debugc(client->state);
                            break;
                      }
                   } else {
-                     showHelp(client);
+                     showHelp(*client);
                      debug("NaN nor a command");
                   }
                }
@@ -381,7 +390,7 @@ static void showMenu(Client client) {
    writeClient(client.sock, buffer);
 }
 
-static void showUserList(Client client, Client listAllClients[]) {
+static int showUserList(Client client, Client listAllClients[]) {
    printf("Showing user list\n");
    char usersList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des utilisateurs :\n";
    int nbUsers = 0;
@@ -399,15 +408,15 @@ static void showUserList(Client client, Client listAllClients[]) {
          // debug("IMPOSSIBLE ID");
       }
    }
-
    if (nbUsers == 0) {
-      strcat(usersList, "Aucun joueur connecté\n");
+      strcat(usersList, "No connected players\n");
    }
    
    writeClient(client.sock, usersList);
+   return nbUsers;
 }
 
-static void showGameList(Client client, Game gameList[], Client clientList[]) {
+static int showGameList(Client client, Game gameList[], Client clientList[]) {
    char gamesList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des parties :\n";
    int nbGames = 0;
 
@@ -422,8 +431,12 @@ static void showGameList(Client client, Game gameList[], Client clientList[]) {
          strcat(strcat(gamesList, strcat(strcat(nbGamesChars, ". "), strcat(strcat(client1.name, "vs. "), client2.name))), "\n");
       }
    }
-   
+   if (nbGames == 0) {
+      strcat(gamesList, "No current games\n");
+   }
+
    writeClient(client.sock, gamesList);
+   return nbGames;
 }
 
 // --------------- select ---------------

@@ -67,8 +67,8 @@ static void switchDiffusion(Client *client, char to, int diffusionMainMenu[MAX_C
 static void showChallenge(char challengerName[SMALL_SIZE], Client client);
 static void showHelp(Client client);
 static void showMenu(Client client);
-static void showUserList(Client client, Client listAllClients[]);
-static void showGameList(Client client, Game gameList[], Client clientList[]);
+static int showUserList(Client client, Client listAllClients[]);
+static int showGameList(Client client, Game gameList[], Client clientList[]);
 
 // --------------- select ---------------
 
