@@ -258,7 +258,7 @@ char moveOkay(Game g, int move) {
 	}
 }
 
-void show_board(const int board[]) {
+void showBoard(const int board[]) {
 	printf("\n");
 	for (int i=12; i>9; i--) {
 		printf("  %d",i);

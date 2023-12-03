@@ -64,6 +64,7 @@ static void switchDiffusion(Client *client, char to, int diffusionMainMenu[MAX_C
 
 // --------------- show ---------------
 
+static void showMoveRequest(Client client);
 static void showChallenge(char challengerName[SMALL_SIZE], Client client);
 static void showHelp(Client client);
 static void showMenu(Client client);
@@ -72,14 +73,14 @@ static int showGameList(Client client, Game gameList[], Client clientList[]);
 
 // --------------- select ---------------
 
-static Client getClient(int id, Client allClients[], int nbClients);
-static Client findClient(Client *clients, int numClient, const char* name);
-static int getSocketIdByUsername(const char username[], const Client listAllClient[]);
+static Client getClient(const int id, const Client allClients[MAX_CLIENTS], const int nbClients);
+static Client* findClient(const Client clients[MAX_CLIENTS], const char name[SMALL_SIZE]);
+static int getSocketIdByUsername(const char username[SMALL_SIZE], const Client listAllClient[MAX_CLIENTS]);
 
 // --------------- from list ---------------
 
 static Client userFromList(int input, Client listAllClients[]);
-static Game gameFromList(int input, Game listAllGames[]);
+static int gameFromList(int input, Game listAllGames[]);
 
 // --------------- game ---------------
 

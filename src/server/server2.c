@@ -15,7 +15,7 @@
 #define debugc(expression) ((void)0)
 #endif
 
-#define exist(g) ((g.active == 0 && g.finished == 1) ? 1 : 0)
+#define exist(g) ((g.active == 0 && g.finished == 1) ? 0 : 1)
 
 
 
@@ -134,6 +134,27 @@ static void app(void) {
 
                            listOfGames[indice].active = 1;
                            listOfGames[indice].finished = 0;
+                           // TODO : initialise board and other variables of the game
+                           initGame(&listOfGames[indice]);
+                           // TODO : put the two player into the diffusion of the game
+                           Client* opponent = findClient(listAllClients,name);
+                           if ( opponent->sock != listAllClients[MAX_CLIENTS-1].sock ) {
+                              switchDiffusion(client,GAME,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                              switchDiffusion(opponent,GAME,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                           } else {
+                              debug(name);
+                              debug("NOT FOUND !");
+                           }
+                           // TODO : send the board to the players
+                           showBoard(listOfGames[indice].board);
+                           // TODO : request the move of the first player
+                           if ( listOfGames[indice].currentPlayer == 1 ) {
+                              showMoveRequest(*client);
+                           } else if ( listOfGames[indice].currentPlayer == 2 ) {
+                              showMoveRequest(*opponent);
+                           } else {
+                              debugd(listOfGames[indice].currentPlayer);
+                           }
                         } else {
                            debug("Problem sscanf");
                         }
@@ -202,7 +223,7 @@ static void app(void) {
                      printf("Number: %d, State: %c\n", number, client->state);
                      debugd(number);
                      Client cSelected;
-                     Game gSelected;
+                     int indice;
                      switch (client->state) {
                         case MAIN_MENU:
                            debugc(client->state);
@@ -234,7 +255,8 @@ static void app(void) {
                            // find user
                            cSelected = userFromList(number,listAllClients); // how to get the right number ? (the player 2 disapear)
                            // add the game
-                           int indice = findEmptyGame(listOfGames);
+                           indice = findEmptyGame(listOfGames);
+                           debugd(indice);
                            listOfGames[indice].active = 0;
                            listOfGames[indice].finished = 0;
                            listOfGames[indice].challenger = client->sock;
@@ -244,8 +266,10 @@ static void app(void) {
                            showChallenge(client->name, cSelected);
                            break;
                         case GAME_LIST:
-                           gSelected = gameFromList(number, listOfGames); // how to get the right number ? (ex: the game 2 disapear)
-                           
+                           indice = gameFromList(number, listOfGames); // how to get the right number ? (ex: the game 2 disapear)
+                           if ( indice != -1 ) {
+                              switchDiffusion(client,GAME,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                           }
                            // TODO int indice = findEmptyGame(listOfGames);
                            // TODO handle game not found
                            // TODO next
@@ -342,6 +366,14 @@ static void switchDiffusion(Client *client, char to, int diffusionMainMenu[MAX_C
 
 // --------------- show ---------------
 
+static void showMoveRequest(Client client) {
+   char buffer[BUF_SIZE] = "";
+   strcat(buffer, client.name);
+   strcat(buffer, " it's your turn : ");
+
+   writeClient(client.sock, buffer);
+}
+
 static void showChallenge(char challengerName[SMALL_SIZE], Client client) {
    char buffer[BUF_SIZE] = "";
    // strcat(buffer, yellow);
@@ -428,7 +460,7 @@ static int showGameList(Client client, Game gameList[], Client clientList[]) {
          // TODO handle cases of client.sock = -1
          char nbGamesChars[SMALL_SIZE];
          sprintf(nbGamesChars, "%d", nbGames);
-         strcat(strcat(gamesList, strcat(strcat(nbGamesChars, ". "), strcat(strcat(client1.name, "vs. "), client2.name))), "\n");
+         strcat(strcat(gamesList, strcat(strcat(nbGamesChars, ". "), strcat(strcat(client1.name, " vs. "), client2.name))), "\n");
       }
    }
    if (nbGames == 0) {
@@ -441,7 +473,7 @@ static int showGameList(Client client, Game gameList[], Client clientList[]) {
 
 // --------------- select ---------------
 
-static Client getClient(int id, Client allClients[], int nbClients) {
+static Client getClient(const int id, const Client allClients[MAX_CLIENTS], const int nbClients) {
    for (int i=0; i<nbClients; i++) {
       if (allClients[i].sock == id) {
          return allClients[i];
@@ -453,19 +485,17 @@ static Client getClient(int id, Client allClients[], int nbClients) {
    return c;
 }
 
-static Client findClient(Client clients[], int numClients, const char name[]) {
-   for (int i=0; i<numClients; i++) {
+static Client* findClient(const Client clients[MAX_CLIENTS], const char name[SMALL_SIZE]) {
+   for (int i=0; i<MAX_CLIENTS; i++) {
       if ( strcmp(clients[i].name,name) == 0 ) {
-         return clients[i];
+         return &clients[i];
       }
    }
    debug("No clients found !");
-   Client c;
-   c.sock = -1;
-   return c;
+   return &clients[MAX_CLIENTS-1];
 }
 
-static int getSocketIdByUsername(const char username[], const Client listAllClient[]) {
+static int getSocketIdByUsername(const char username[SMALL_SIZE], const Client listAllClient[MAX_CLIENTS]) {
    for (int i = 0; i < MAX_CLIENTS; i++) {
       if (strcmp(listAllClient[i].name, username) == 0) {
          return listAllClient[i].sock;
@@ -494,22 +524,19 @@ static Client userFromList(int input, Client listAllClients[]) {
    return c;
 }
 
-static Game gameFromList(int input, Game listAllGames[]) {
+static int gameFromList(int input, Game listAllGames[]) {
    int nbExistingGames = 1;
 
    for (int i = 0; i < MAX_CLIENTS; i++) {
       if (listAllGames[i].active == 1) {
          if (nbExistingGames == input) {
-            return listAllGames[i];
+            return i;
          }
          nbExistingGames++;
       }
    }
    debug("No game found !");
-   Game g;
-   g.active = 0;
-   g.finished = 1;
-   return g;
+   return -1;
 }
 
 // --------------- game ---------------
@@ -517,9 +544,13 @@ static Game gameFromList(int input, Game listAllGames[]) {
 static int findEmptyGame(Game gameList[]) {
    for (int i=0; i<MAX_GAMES; i++) {
       if (exist(gameList[i]) == 0) { // la game n'existe pas
+         debugd(gameList[i].active);
+         debugd(gameList[i].finished);
          return i;
       }
    }
+   debugd(gameList[0].active);
+   debugd(gameList[0].finished);
    return -1;
 }
 
