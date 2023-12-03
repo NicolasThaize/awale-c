@@ -171,7 +171,7 @@ static void app(void) {
                            max = max - 1;
                         } else {
                            int indice = client.subscribedGame;
-                           switchDiffusion(client.state,MAIN_MENU,client.sock,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                           switchDiffusion(&client,MAIN_MENU,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                         }
                         break;
                      case 'h': // help
@@ -196,7 +196,7 @@ static void app(void) {
                         break;
                      }
                   } else if (sscanf(buffer, "%d", &number) == 1) {
-                     printf("Number: %d\n", number);
+                     printf("Number: %d, State: %c\n", number, client.state);
                      debugd(number);
                      Client cSelected;
                      switch (client.state) {
@@ -209,12 +209,12 @@ static void app(void) {
                               // play
                               showUserList(client,listAllClients);
                               int indice = client.subscribedGame;
-                              switchDiffusion(client.state,USER_LIST,client.sock,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                              switchDiffusion(&client,USER_LIST,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                            } else if (number == 2) {
                               // spectate
                               showGameList(client,listOfGames,listAllClients);
                               int indice = client.subscribedGame;
-                              switchDiffusion(client.state,GAME_LIST,client.sock,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                              switchDiffusion(&client,GAME_LIST,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                            } else {
                               debug("Bad number from main menu");
                            }
@@ -280,37 +280,39 @@ static void subscribeToDiffusion(int diffusion[], int max_size, int socketId) {
 }
 
 
-static void switchDiffusion(char from, char to, int socketId, int diffusionMainMenu[MAX_CLIENTS], int diffusionUsersList[MAX_CLIENTS], int diffusionGamesList[MAX_CLIENTS], int *diffusionOfTheGame) {
-   switch (from) {
+static void switchDiffusion(Client *client, char to, int diffusionMainMenu[MAX_CLIENTS], int diffusionUsersList[MAX_CLIENTS], int diffusionGamesList[MAX_CLIENTS], int *diffusionOfTheGame) {
+   switch (client->state) {
       case MAIN_MENU:
-         unsubscribeFromDiffusion(diffusionMainMenu, MAX_CLIENTS, socketId);
+         unsubscribeFromDiffusion(diffusionMainMenu, MAX_CLIENTS, client->sock);
          break;
       case USER_LIST:
-         unsubscribeFromDiffusion(diffusionUsersList, MAX_CLIENTS, socketId);
+         unsubscribeFromDiffusion(diffusionUsersList, MAX_CLIENTS, client->sock);
          break;
       case GAME_LIST:
-         unsubscribeFromDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
+         unsubscribeFromDiffusion(diffusionGamesList, MAX_CLIENTS, client->sock);
          break;
       case GAME:
-         unsubscribeFromDiffusion(diffusionOfTheGame, MAX_CLIENTS, socketId);
+         unsubscribeFromDiffusion(diffusionOfTheGame, MAX_CLIENTS, client->sock);
          break;
       
       default:
          break;
    }
-
+   printf("from: %c, to: %c\n", client->state, to);
+   client->state = to; // TODO : Je ne sais pas pk ça ne change pas le client.state au delà du code
    switch (to){
-   case MAIN_MENU:
-         subscribeToDiffusion(diffusionMainMenu, MAX_CLIENTS, socketId);
+      case MAIN_MENU:
+         subscribeToDiffusion(diffusionMainMenu, MAX_CLIENTS, client->sock);
          break;
       case USER_LIST:
-         subscribeToDiffusion(diffusionUsersList, MAX_CLIENTS, socketId);
+         printf("userlist\n");
+         subscribeToDiffusion(diffusionUsersList, MAX_CLIENTS, client->sock);
          break;
       case GAME_LIST:
-         subscribeToDiffusion(diffusionGamesList, MAX_CLIENTS, socketId);
+         subscribeToDiffusion(diffusionGamesList, MAX_CLIENTS, client->sock);
          break;
       case GAME:
-         subscribeToDiffusion(diffusionOfTheGame, MAX_CLIENTS, socketId);
+         subscribeToDiffusion(diffusionOfTheGame, MAX_CLIENTS, client->sock);
          break;
       
       default:
