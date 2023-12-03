@@ -135,8 +135,17 @@ static void app(void) {
                            printf("Name: %s\n", name);
                            // find the corresponding game from listOfGames
                            int id = getSocketIdByUsername(name,listAllClients);
-                           // TODO : handle id = -1
+                            if (id == -1) {
+                              writeClient(client.sock, "Cannot decline a challenge from a disconnected player");
+                              continue;
+                           }
+
                            int indice = findGame(listOfGames, id, client.sock);
+                           if (indice == -1) {
+                              writeClient(client.sock, "Error, cannot decline a challenge that does not exist");
+                              continue;
+                           }
+
                            listOfGames[indice].active = 0;
                            listOfGames[indice].finished = 1;
                         } else {
