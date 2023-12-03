@@ -88,7 +88,8 @@ static void app(void) {
          strncpy(c.name, buffer, SMALL_SIZE - 1);
          listAllClients[nbClients] = c;
          nbClients++;
-         showMenu(c); // TODO
+         c.state = MAIN_MENU;
+         showMenu(c);
       } else {
          for (int i=0; i<nbClients; i++) {
             /* a client is talking */
@@ -112,8 +113,17 @@ static void app(void) {
                            printf("Name: %s\n", name);
                            // find the corresponding game from listOfGames
                            int id = getSocketIdByUsername(name,listAllClients);
-                           // TODO : handle id = -1
+                           if (id == -1) {
+                              writeClient(client.sock, "Cannot accept a challenge from a disconnected player");
+                              continue;
+                           }
+                           
                            int indice = findGame(listOfGames, id, client.sock);
+                           if (indice == -1) {
+                              writeClient(client.sock, "Error, cannot accept a challenge that does not exist");
+                              continue;
+                           }
+
                            listOfGames[indice].active = 1;
                            listOfGames[indice].finished = 0;
                         } else {
@@ -179,6 +189,7 @@ static void app(void) {
                   } else if (sscanf(buffer, "%d", &number) == 1) {
                      printf("Number: %d\n", number);
                      debugd(number);
+                     Client cSelected;
                      switch (client.state) {
                         case MAIN_MENU:
                            if (number == 0) {
@@ -198,8 +209,8 @@ static void app(void) {
                            }
                            break;
                         case USER_LIST:
-                           // TODO Client cSelected = userFromList(client,number,listAllClients);
-                           // TODO
+                           cSelected = userFromList(client,number,listAllClients);
+                           printf("%s", cSelected.name);
                            break;
                         case GAME_LIST:
                            // TODO int indice = findEmptyGame(listOfGames);
@@ -216,6 +227,8 @@ static void app(void) {
 		                     // TODO : Implémenter quand il y aura une gamelist show_board(g.board);
                            break;
                         default:
+                           printf("%c", client.state);
+                           printf("%s", client.state);
                            debugc(client.state);
                            break;
                      }
@@ -319,6 +332,7 @@ static void showMenu(Client client) {
 }
 
 static void showUserList(Client client, Client listAllClients[]) {
+   printf("Showing user list");
    char usersList[MAX_CLIENTS * SMALL_SIZE + 100] = "Liste des utilisateurs :\n";
    int nbUsers = 0;
 
@@ -382,7 +396,7 @@ static Client findClient(Client clients[], int numClients, const char name[]) {
 
 static int getSocketIdByUsername(const char username[], const Client listAllClient[]) {
    for (int i = 0; i < MAX_CLIENTS; i++) {
-      if (listAllClient[i].name == username) {
+      if (strcmp(listAllClient[i].name, username) == 0) {
          return listAllClient[i].sock;
       }
    }
@@ -413,8 +427,7 @@ static Game gameFromList(Client client, int input, Game listAllGames[]) {
    int nbExistingGames = 1;
 
    for (int i = 0; i < MAX_CLIENTS; i++) {
-      if (listAllGames[i].active == 1)
-      {
+      if (listAllGames[i].active == 1) {
          if (nbExistingGames == input) {
             return listAllGames[i];
          }
