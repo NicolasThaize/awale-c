@@ -54,9 +54,12 @@ static void app(void) {
          FD_SET(listAllClients[i].sock, &rdfs);
       }
 
-      if(select(max + 1, &rdfs, NULL, NULL, NULL) == -1) {
-         perror("select()");
-         exit(errno);
+      while(select(max + 1, &rdfs, NULL, NULL, NULL) == -1) {
+         max--;
+         if (max == 0) {
+            perror("select()");
+            exit(errno);
+         }
       }
 
       /* something from standard input : i.e keyboard */
@@ -169,9 +172,9 @@ static void app(void) {
                         //    FD_CLR(client.sock, &rdfs);
                         // }
                         // printf("Bazouzou2");
-                        printf("Bazou");
                         if (client.state == 'm') {
                            close(client.sock);
+                           max = max - 1;
                         } else {
                            int indice = client.subscribedGame;
                            switchDiffusion(client.state,MAIN_MENU,client.sock,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
