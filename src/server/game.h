@@ -29,7 +29,7 @@ char nextPlayer(char player);
 char empty(int board[12], char side);
 int sumSide(int board[12], char side);
 int bestMove(int board[12], char player);
-char moveOkay(Game g, int move);
+int moveOkay(Game g, int move);
 void showBoard(const int board[]);
 int getUserInput(Game g);
 int playTheMove(Game* g, int computerMove);

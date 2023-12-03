@@ -148,9 +148,9 @@ static void app(void) {
                            // TODO : send the board to the players
                            showBoard(listOfGames[indice].board);
                            // TODO : request the move of the first player
-                           if ( listOfGames[indice].currentPlayer == 1 ) {
+                           if ( listOfGames[indice].currentPlayer == 2 ) {
                               showMoveRequest(*client);
-                           } else if ( listOfGames[indice].currentPlayer == 2 ) {
+                           } else if ( listOfGames[indice].currentPlayer == 1 ) {
                               showMoveRequest(*opponent);
                            } else {
                               debugd(listOfGames[indice].currentPlayer);
@@ -195,7 +195,7 @@ static void app(void) {
                            max = max - 1;
                         } else {
                            int indice = client->subscribedGame;
-                           switchDiffusion(&client,MAIN_MENU,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                           switchDiffusion(client,MAIN_MENU,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
                         }
                         break;
                      case 'h': // help
@@ -220,9 +220,11 @@ static void app(void) {
                         break;
                      }
                   } else if (sscanf(buffer, "%d", &number) == 1) {
-                     printf("Number: %d, State: %c\n", number, client->state);
-                     debugd(number);
+                     //printf("Number: %d, State: %c\n", number, client->state);
+                     //debugd(number);
+                     //debugc(client->state);
                      Client cSelected;
+                     Game foundGame;
                      int indice;
                      switch (client->state) {
                         case MAIN_MENU:
@@ -276,11 +278,28 @@ static void app(void) {
                            break;
                         case GAME:
                            // test if the player is in a game and get the game
-                           // TODO : Implémenter quand il y aura une gamelist Game g = getClientGame(client, listOfGames);
+                           foundGame = getClientGame(*client, listOfGames);
+                           printf("number: %d, converted= %d\n", number, convertGame(number));
+                           if (foundGame.currentPlayer == 1 && client->sock == foundGame.challenger) {
+                              if (number >= 1 && number <= 6) {
+                                 debugd(play(&foundGame, convertGame(number))); // to implement (arguments surely missing)
+                                 writeClient(client->sock, "Invalid entry type a number between 1 and 6.");
+                                 printf("%s played : %d", client->name, number);
+                              }
+                           } else if (foundGame.currentPlayer == 2 && client->sock == foundGame.challenged) {
+                              if (number >= 7 && number <= 12) {
+                                 debugd(play(&foundGame, convertGame(number))); // to implement (arguments surely missing)
+                                 printf("%s played : %d", client->name, number);
+                              } else {
+                                 writeClient(client->sock, "Invalid entry type a number between 7 and 12.");
+                              }
+                           } else {
+                              printf("%s, not your turn\n", client->name);
+                              continue; // not client his turn to play or has invalid entry
+                           }
+                           printf("-------------- TOUR %d ----------------",-1);
+                           showBoard(foundGame.board);
                            // TODO handle game not found
-                           // TODO : Implémenter quand il y aura une gamelist play(&g, convert(number)); // to implement (arguments surely missing)
-                           // TODO : Implémenter quand il y aura une gamelist printf("-------------- TOUR %d ----------------",nbTour);
-		                     // TODO : Implémenter quand il y aura une gamelist show_board(g.board);
                            break;
                         default:
                            printf("%c", client->state);
@@ -582,7 +601,8 @@ static Game getClientGame(Client client, const Game gameList[]) {
 // --------------- play ---------------
 
 static int play(Game* g, int computerMove) {
-	if ( moveOkay(*g,computerMove) == 1 ) {
+	printf("moveOkay: %c", moveOkay(*g, computerMove));
+   if ( moveOkay(*g,computerMove) == 1 ) {
 		debug("improve score and apply move");
 		printf("Move okay");
 		if ( g->currentPlayer == 1 ) {
@@ -627,16 +647,15 @@ static int play(Game* g, int computerMove) {
 
 static char convert(char userInput) {
    char res;
-   if ( userInput<7 && userInput>0 ) {
-      res = userInput-7;
-   } else if ( userInput<13 ) {
-      res = 13-userInput;
-   }
-   else {
-      debugc(userInput);
-      res = -1;
-   }
-   return res;
+   if ( userInput <= 12 && userInput >= 7 ) {
+		res = 12 - userInput;
+	} else if ( userInput >= 1 && userInput <= 6 ) {
+		res = userInput + 5;
+	}
+	else {
+		res = -1;
+	}
+	return res;
 }
 
 int main(int argc, char **argv) {
