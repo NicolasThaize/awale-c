@@ -228,8 +228,9 @@ static void app(void) {
                      //debugd(number);
                      //debugc(client->state);
                      Client cSelected;
-                     Game foundGame;
-                     int indice;
+                     Game* foundGame;
+                     int indice = 0;
+                     int playState = 0;
                      switch (client->state) {
                         case MAIN_MENU:
                            debugc(client->state);
@@ -283,17 +284,19 @@ static void app(void) {
                         case GAME:
                            // test if the player is in a game and get the game
                            foundGame = getClientGame(*client, listOfGames);
-                           printf("number: %d, converted= %d\n", number, convertGame(number));
-                           if (foundGame.currentPlayer == 1 && client->sock == foundGame.challenger) {
+                           printf("Joueur avant coup: %d\n", foundGame->currentPlayer);
+                           //printf("number: %d, converted= %d\n", number, convertGame(number));
+                           if (foundGame->currentPlayer == 1 && client->sock == foundGame->challenger) {
                               if (number >= 1 && number <= 6) {
-                                 debugd(play(&foundGame, convertGame(number))); // to implement (arguments surely missing)
+                                 playState = play(foundGame, convertGame(number));
+                                 //printf("%s played : %d", client->name, number);
+                              } else {
                                  writeClient(client->sock, "Invalid entry type a number between 1 and 6.");
-                                 printf("%s played : %d", client->name, number);
                               }
-                           } else if (foundGame.currentPlayer == 2 && client->sock == foundGame.challenged) {
+                           } else if (foundGame->currentPlayer == 2 && client->sock == foundGame->challenged) {
                               if (number >= 7 && number <= 12) {
-                                 debugd(play(&foundGame, convertGame(number))); // to implement (arguments surely missing)
-                                 printf("%s played : %d", client->name, number);
+                                 playState = play(foundGame, convertGame(number));
+                                 //printf("%s played : %d", client->name, number);
                               } else {
                                  writeClient(client->sock, "Invalid entry type a number between 7 and 12.");
                               }
@@ -301,8 +304,23 @@ static void app(void) {
                               printf("%s, not your turn\n", client->name);
                               continue; // not client his turn to play or has invalid entry
                            }
-                           printf("-------------- TOUR %d ----------------",-1);
-                           showBoard(foundGame.board);
+                           //printf("Joueur apres coup: %d\n", foundGame->currentPlayer);
+                           debugd(playState);
+                           if (playState == 1) {
+                              Client opponent = getClientBySocketId(listAllClients,foundGame->challenged);
+                              Client player = getClientBySocketId(listAllClients,foundGame->challenger);
+                              showBoard(player, listOfGames[indice].board);
+                              showBoard(opponent, listOfGames[indice].board);
+                              if (foundGame->currentPlayer == 1) {
+                                 showMoveRequest(player);
+                                 showOtherPlayer(opponent, player);
+                              } else {
+                                 showMoveRequest(opponent);
+                                 showOtherPlayer(player, opponent);
+                              }
+                           }
+                           //printf("-------------- TOUR %d ----------------",-1);
+                           showBoard(*client, foundGame->board);
                            // TODO handle game not found
                            break;
                         default:
@@ -454,6 +472,15 @@ static void showMoveRequest(Client client) {
    writeClient(client.sock, buffer);
 }
 
+static void showOtherPlayer(Client clientTo, Client otherClient) {
+   char buffer[BUF_SIZE] = "";
+   strcat(buffer, "It's ");
+   strcat(buffer, otherClient.name);
+   strcat(buffer, " turn :\n");
+
+   writeClient(clientTo.sock, buffer);
+}
+
 static void showChallenge(char challengerName[SMALL_SIZE], Client client) {
    char buffer[BUF_SIZE] = "";
    // strcat(buffer, yellow);
@@ -592,6 +619,18 @@ static int getSocketIdByUsername(const char username[SMALL_SIZE], const Client l
    return -1;
 }
 
+static Client getClientBySocketId(const Client allClients[MAX_CLIENTS], const int socketId) {
+   for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (allClients[i].sock == socketId) {
+         return allClients[i];
+      }
+   }
+   debug("No clients found !");
+   Client c;
+   c.sock = -1;
+   return c;
+}
+
 // --------------- from list ---------------
 
 static Client userFromList(int input, Client listAllClients[]) {
@@ -654,17 +693,17 @@ static int findGame(Game gameList[], int challenger, int challenged) {
    return -1;
 }
 
-static Game getClientGame(Client client, const Game gameList[]) {
+static Game* getClientGame(Client client, const Game gameList[]) {
    if (client.subscribedGame != IMPOSSIBLE_ID) {
       if (gameList[client.subscribedGame].challenged == client.sock || gameList[client.subscribedGame].challenger == client.sock) {
-         return gameList[client.subscribedGame];
+         return &gameList[client.subscribedGame];
       }
    }
    debug("No game found !");
    Game g;
    g.active = 0;
    g.finished = 1;
-   return g;
+   return &g;
 }
 
 // --------------- play ---------------
