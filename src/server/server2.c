@@ -202,6 +202,7 @@ static void app(void) {
                         } else {
                            int indice = client->subscribedGame;
                            switchDiffusion(client,MAIN_MENU,diffusionMainMenu,diffusionUsersList,diffusionGamesList,diffusionGames[indice]);
+                           showMenu(*client);
                         }
                         break;
                      case 'h': // help
@@ -544,7 +545,7 @@ static void showMenu(Client client) {
    char buffer[BUF_SIZE] = "";
    strcat(buffer, "Welcome to AWALE :\n");
    strcat(buffer, "1. Play\n");
-   strcat(buffer, "2. Spectate a game\n");
+   strcat(buffer, "2. Spectate/resume a game\n");
    strcat(buffer, "0. Disconnect\n");
 
    writeClient(client.sock, buffer);
