@@ -3,7 +3,11 @@
 
 ## compiling
 
-see `make help`
+see `make help` for more informations
+
+- compile only server in debug `make server`
+- compile only client in debug `make client`
+- compile client and server `make final`
 
 ## main menu
 

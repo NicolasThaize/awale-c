@@ -19,8 +19,8 @@ BDIR_TEST = build/test/
 OBJ_TEST = $(HEADERS_TEST:test/%.h=$(BDIR_TEST)%.o)
 DEPS_TEST = $(HEADERS_TEST:test/%.h=$(BDIR_TEST)%.d)
 
-FLAG_DEBUG = -DMAP -DTRACE -ggdb -Wall# -Wextra -Werror# -ansi -Og# -fsanitize=address -fno-omit-frame-pointer
-FLAG_FINAL = -pedantic -Wall -Wextra -Werror -DNDEBUG -O3
+FLAG_DEBUG = -DMAP -DTRACE -ggdb -Wall -Wextra# -Werror# -ansi -Og# -fsanitize=address -fno-omit-frame-pointer
+FLAG_FINAL = -pedantic -Wall -Wextra -DNDEBUG -O3# -Werror
 LIBS = 
 CXX = gcc
 
@@ -70,7 +70,7 @@ $(BDIR_CLIENT)%.o : src/client/%.c $(DEPS_CLIENT) # compilation
 # --------------------  -------------------- #
 
 .PHONY:test
-test : $(EXE_TEST) ## (defaut) compile le client debug
+test : $(EXE_TEST) ## compile l'executable de test
 
 $(EXE_TEST) : $(OBJ_TEST) # linkage $(EXE)
 	$(CXX) $(FLAG_DEBUG) -o $@ $^ $(LIBS)
@@ -88,7 +88,7 @@ final : chflag clean $(EXE_SERVER) $(EXE_CLIENT) ## compile le serveur et le cli
 
 .PHONY:chflag
 chflag :
-	FLAG_DEBUG = FLAG_FINAL
+	$(eval FLAG_DEBUG = $(FLAG_FINAL))
 
 # --------------------  -------------------- #
 

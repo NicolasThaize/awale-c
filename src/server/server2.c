@@ -287,63 +287,67 @@ static void app(void) {
                            break;
                         case GAME:
                            // test if the player is in a game and get the game
-                           foundGame = getClientGame(*client, listOfGames);
-                           printf("Joueur avant coup: %d\n", foundGame->currentPlayer);
-                           //printf("number: %d, converted= %d\n", number, convertGame(number));
-                           if (foundGame->currentPlayer == 1 && client->sock == foundGame->challenger) {
-                              if (number >= 1 && number <= 6) {
-                                 playState = play(foundGame, convertGame(number));
-                                 //printf("%s played : %d", client->name, number);
+                           if ( listOfGames[client->subscribedGame].challenged == client->sock ||  listOfGames[client->subscribedGame].challenger == client->sock  ) {
+                              foundGame = getClientGame(*client, listOfGames);
+                              printf("Joueur avant coup: %d\n", foundGame->currentPlayer);
+                              //printf("number: %d, converted= %d\n", number, convertGame(number));
+                              if (foundGame->currentPlayer == 1 && client->sock == foundGame->challenger) {
+                                 if (number >= 1 && number <= 6) {
+                                    playState = play(foundGame, convertGame(number));
+                                    //printf("%s played : %d", client->name, number);
+                                 } else {
+                                    writeClient(client->sock, "Invalid entry type a number between 1 and 6.");
+                                 }
+                              } else if (foundGame->currentPlayer == 2 && client->sock == foundGame->challenged) {
+                                 if (number >= 7 && number <= 12) {
+                                    playState = play(foundGame, convertGame(number));
+                                    //printf("%s played : %d", client->name, number);
+                                 } else {
+                                    writeClient(client->sock, "Invalid entry type a number between 7 and 12.");
+                                 }
                               } else {
-                                 writeClient(client->sock, "Invalid entry type a number between 1 and 6.");
+                                 continue; // not client his turn to play or has invalid entry
                               }
-                           } else if (foundGame->currentPlayer == 2 && client->sock == foundGame->challenged) {
-                              if (number >= 7 && number <= 12) {
-                                 playState = play(foundGame, convertGame(number));
-                                 //printf("%s played : %d", client->name, number);
-                              } else {
-                                 writeClient(client->sock, "Invalid entry type a number between 7 and 12.");
-                              }
-                           } else {
-                              continue; // not client his turn to play or has invalid entry
-                           }
-                           //printf("Joueur apres coup: %d\n", foundGame->currentPlayer);
-                           debugd(playState);
-                           if (playState == 1) {
-                              Client opponent = getClientBySocketId(listAllClients,foundGame->challenged);
-                              Client player = getClientBySocketId(listAllClients,foundGame->challenger);
-                              showBoard(player, listOfGames[indice].board);
-                              showBoard(opponent, listOfGames[indice].board);
-                              if (foundGame->currentPlayer == 1) {
-                                 showMoveRequest(player); 
-                                 showOtherPlayer(opponent, player);
-                              } else {
-                                 showMoveRequest(opponent);
-                                 showOtherPlayer(player, opponent); 
-                              }
-                           }
-                           printf("-------------- TOUR %d ----------------",-1);
-                           int id;
-                           for (int i=0; i<MAX_CLIENTS; i++) {
-                              id = diffusionGames[client->subscribedGame][i];
-                              if ( id != IMPOSSIBLE_ID && id != foundGame->challenged && id != foundGame->challenger ) {
+                              //printf("Joueur apres coup: %d\n", foundGame->currentPlayer);
+                              debugd(playState);
+                              if (playState == 1) {
                                  Client opponent = getClientBySocketId(listAllClients,foundGame->challenged);
                                  Client player = getClientBySocketId(listAllClients,foundGame->challenger);
-                                 Client current = getClient(id, listAllClients);
+                                 showBoard(player, listOfGames[indice].board);
+                                 showBoard(opponent, listOfGames[indice].board);
                                  if (foundGame->currentPlayer == 1) {
-                                    showPlayedBy(current, opponent);
+                                    showMoveRequest(player); 
+                                    showOtherPlayer(opponent, player);
                                  } else {
-                                    showPlayedBy(current, player); 
-                                 }
-                                 showBoard(current,foundGame->board);
-                                 if (foundGame->currentPlayer == 1) {
-                                    showOtherPlayer(current, player);
-                                 } else {
-                                    showOtherPlayer(current, opponent); 
+                                    showMoveRequest(opponent);
+                                    showOtherPlayer(player, opponent); 
                                  }
                               }
+                              printf("-------------- TOUR %d ----------------",-1);
+                              int id;
+                              for (int i=0; i<MAX_CLIENTS; i++) {
+                                 id = diffusionGames[client->subscribedGame][i];
+                                 if ( id != IMPOSSIBLE_ID && id != foundGame->challenged && id != foundGame->challenger ) {
+                                    Client opponent = getClientBySocketId(listAllClients,foundGame->challenged);
+                                    Client player = getClientBySocketId(listAllClients,foundGame->challenger);
+                                    Client current = getClient(id, listAllClients);
+                                    if (foundGame->currentPlayer == 1) {
+                                       showPlayedBy(current, opponent);
+                                    } else {
+                                       showPlayedBy(current, player); 
+                                    }
+                                    showBoard(current,foundGame->board);
+                                    if (foundGame->currentPlayer == 1) {
+                                       showOtherPlayer(current, player);
+                                    } else {
+                                       showOtherPlayer(current, opponent); 
+                                    }
+                                 }
+                              }
+                              // TODO handle game not found
+                           } else {
+                              writeClient(client->sock, "You are not playing");
                            }
-                           // TODO handle game not found
                            break;
                         default:
                            printf("%c", client->state);
