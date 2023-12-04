@@ -71,12 +71,14 @@ static void showHelp(Client client);
 static void showMenu(Client client);
 static int showUserList(Client client, Client listAllClients[MAX_CLIENTS]);
 static int showGameList(Client client, Game gameList[MAX_GAMES], Client clientList[MAX_CLIENTS]);
+static void showOtherPlayer(Client clientTo, Client otherClient);
 
 // --------------- select ---------------
 
 static Client getClient(const int id, const Client allClients[MAX_CLIENTS]);
 static Client* findClient(Client clients[MAX_CLIENTS], const char name[SMALL_SIZE]);
 static int getSocketIdByUsername(const char username[SMALL_SIZE], const Client listAllClient[MAX_CLIENTS]);
+static Client getClientBySocketId(const Client allClients[MAX_CLIENTS], const int socketId);
 
 // --------------- from list ---------------
 
@@ -87,7 +89,7 @@ static int gameFromList(int input, Game listAllGames[]);
 
 static int findEmptyGame(Game gameList[]);
 static int findGame(Game gameList[], int challenger, int challenged);
-static Game getClientGame(Client client, const Game gameList[]);
+static Game* getClientGame(Client client, const Game gameList[]);
 
 // --------------- play ---------------
 

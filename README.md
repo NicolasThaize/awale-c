@@ -70,6 +70,8 @@ list of players that have subscribed to a diffusion -> correspond to a certain s
 - idem for the game
 - server stop from some user input
 - crash when the input for selecting game/user is bad
+- crash when spectator enter input
+- 
 
 ## todo
 

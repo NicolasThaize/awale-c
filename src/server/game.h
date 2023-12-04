@@ -14,6 +14,7 @@ typedef struct
 	char currentPlayer;
 	char active; // 0 for pending, 1 for playing
 	char finished;
+	int nbTour;
 } Game;
 
 
