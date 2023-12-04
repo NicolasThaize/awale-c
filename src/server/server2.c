@@ -155,7 +155,7 @@ static void app(void) {
                            } else {
                               debugd(listOfGames[indice].currentPlayer);
                            }
-                           
+
                            showBoard(*client, listOfGames[indice].board);
                            showBoard(*opponent, listOfGames[indice].board);
                            show_board(listOfGames[indice].board);
@@ -304,7 +304,6 @@ static void app(void) {
                                  writeClient(client->sock, "Invalid entry type a number between 7 and 12.");
                               }
                            } else {
-                              printf("%s, not your turn\n", client->name);
                               continue; // not client his turn to play or has invalid entry
                            }
                            //printf("Joueur apres coup: %d\n", foundGame->currentPlayer);
@@ -312,14 +311,14 @@ static void app(void) {
                            if (playState == 1) {
                               Client opponent = getClientBySocketId(listAllClients,foundGame->challenged);
                               Client player = getClientBySocketId(listAllClients,foundGame->challenger);
-                              showBoard(player, listOfGames[indice].board);
-                              showBoard(opponent, listOfGames[indice].board);
+                              showBoard(player, listOfGames[indice].board); // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], leBoard);
+                              showBoard(opponent, listOfGames[indice].board); // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], leBoard);
                               if (foundGame->currentPlayer == 1) {
-                                 showMoveRequest(player);
-                                 showOtherPlayer(opponent, player);
+                                 showMoveRequest(player); // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], showMoveRequest(player));
+                                 showOtherPlayer(opponent, player); // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], showOtherPlayer(player));
                               } else {
-                                 showMoveRequest(opponent);
-                                 showOtherPlayer(player, opponent);
+                                 showMoveRequest(opponent); // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], showMoveRequest(player));
+                                 showOtherPlayer(player, opponent);  // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], showOtherPlayer(player));
                               }
                            }
                            printf("-------------- TOUR %d ----------------",-1);
@@ -413,6 +412,11 @@ static void switchDiffusion(Client *client, char to, int diffusionMainMenu[MAX_C
          break;
    }
 }
+
+static void sendToDiffusion(Client diffusion[], char string[BUF_SIZE]) {
+   // TODO : Implementer pour envoyer tableau
+}
+
 
 // --------------- show ---------------
 
