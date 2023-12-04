@@ -73,6 +73,7 @@ static void showMenu(Client client);
 static int showUserList(Client client, Client listAllClients[MAX_CLIENTS]);
 static int showGameList(Client client, Game gameList[MAX_GAMES], Client clientList[MAX_CLIENTS]);
 static void showOtherPlayer(Client clientTo, Client otherClient);
+static void showPlayedBy(Client clientTo, Client otherClient);
 
 // --------------- select ---------------
 

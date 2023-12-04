@@ -312,22 +312,35 @@ static void app(void) {
                            if (playState == 1) {
                               Client opponent = getClientBySocketId(listAllClients,foundGame->challenged);
                               Client player = getClientBySocketId(listAllClients,foundGame->challenger);
-                              showBoard(player, listOfGames[indice].board); // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], leBoard);
-                              showBoard(opponent, listOfGames[indice].board); // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], leBoard);
+                              showBoard(player, listOfGames[indice].board);
+                              showBoard(opponent, listOfGames[indice].board);
                               if (foundGame->currentPlayer == 1) {
-                                 showMoveRequest(player); // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], showMoveRequest(player));
-                                 showOtherPlayer(opponent, player); // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], showOtherPlayer(player));
+                                 showMoveRequest(player); 
+                                 showOtherPlayer(opponent, player);
                               } else {
-                                 showMoveRequest(opponent); // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], showMoveRequest(player));
-                                 showOtherPlayer(player, opponent);  // TODO : Remplacer par sendToDiffusion(diffusionGameList[index], showOtherPlayer(player));
+                                 showMoveRequest(opponent);
+                                 showOtherPlayer(player, opponent); 
                               }
                            }
                            printf("-------------- TOUR %d ----------------",-1);
                            int id;
                            for (int i=0; i<MAX_CLIENTS; i++) {
                               id = diffusionGames[client->subscribedGame][i];
-                              if ( id != IMPOSSIBLE_ID ) {
-                                 showBoard(getClient(id,listAllClients),foundGame->board);
+                              if ( id != IMPOSSIBLE_ID && id != foundGame->challenged && id != foundGame->challenger ) {
+                                 Client opponent = getClientBySocketId(listAllClients,foundGame->challenged);
+                                 Client player = getClientBySocketId(listAllClients,foundGame->challenger);
+                                 Client current = getClient(id, listAllClients);
+                                 if (foundGame->currentPlayer == 1) {
+                                    showPlayedBy(current, opponent);
+                                 } else {
+                                    showPlayedBy(current, player); 
+                                 }
+                                 showBoard(current,foundGame->board);
+                                 if (foundGame->currentPlayer == 1) {
+                                    showOtherPlayer(current, player);
+                                 } else {
+                                    showOtherPlayer(current, opponent); 
+                                 }
                               }
                            }
                            // TODO handle game not found
@@ -490,7 +503,15 @@ static void showOtherPlayer(Client clientTo, Client otherClient) {
    char buffer[BUF_SIZE] = "";
    strcat(buffer, "It's ");
    strcat(buffer, otherClient.name);
-   strcat(buffer, " turn :\n");
+   strcat(buffer, " turn...\n");
+
+   writeClient(clientTo.sock, buffer);
+}
+
+static void showPlayedBy(Client clientTo, Client otherClient) {
+   char buffer[BUF_SIZE] = "";
+   strcat(buffer, otherClient.name);
+   strcat(buffer, " played :\n");
 
    writeClient(clientTo.sock, buffer);
 }
