@@ -302,7 +302,13 @@ static void app(void) {
                               continue; // not client his turn to play or has invalid entry
                            }
                            printf("-------------- TOUR %d ----------------",-1);
-                           showBoard(foundGame.board);
+                           int id;
+                           for (int i=0; i<MAX_CLIENTS; i++) {
+                              id = diffusionGames[client->subscribedGame][i];
+                              if ( id != IMPOSSIBLE_ID ) {
+                                 showBoard(getClient(id,listAllClients),foundGame.board);
+                              }
+                           }
                            // TODO handle game not found
                            break;
                         default:
@@ -519,7 +525,7 @@ static int showUserList(Client client, Client listAllClients[MAX_CLIENTS]) {
       if ( listAllClients[i].sock != IMPOSSIBLE_ID && listAllClients[i].sock != client.sock ) { // exist & not itself
          nbUsers++;
          char userChars[SMALL_SIZE*2];
-         sprintf(userChars, "%d. %s\n",nbUsers,listAllClients[i].name);
+         sprintf(userChars, "%s%d%s. %s\n",blue,i,white,listAllClients[i].name);
 
          //strcat(strcat(usersList, strcat(strcat(nbUsers, ". "), listAllClients[i].name)), "\n");
          strcat(usersList, userChars);
@@ -543,11 +549,11 @@ static int showGameList(Client client, Game gameList[MAX_GAMES], Client clientLi
    for (int i = 0; i < MAX_CLIENTS; i++) {
       if (gameList[i].active == 1) {
          nbGames++;
-         Client client1 = getClient(gameList[i].challenged, clientList, MAX_CLIENTS);
-         Client client2 = getClient(gameList[i].challenger, clientList, MAX_CLIENTS);
+         Client client1 = getClient(gameList[i].challenged, clientList);
+         Client client2 = getClient(gameList[i].challenger, clientList);
          // TODO handle cases of client.sock = -1
          char nbGamesChars[SMALL_SIZE];
-         sprintf(nbGamesChars, "%d", nbGames);
+         sprintf(nbGamesChars, "%s%d%s", blue, i, white);
          strcat(strcat(gamesList, strcat(strcat(nbGamesChars, ". "), strcat(strcat(client1.name, " vs. "), client2.name))), "\n");
       }
    }
@@ -561,8 +567,8 @@ static int showGameList(Client client, Game gameList[MAX_GAMES], Client clientLi
 
 // --------------- select ---------------
 
-static Client getClient(const int id, const Client allClients[MAX_CLIENTS], const int nbClients) {
-   for (int i=0; i<nbClients; i++) {
+static Client getClient(const int id, const Client allClients[MAX_CLIENTS]) {
+   for (int i=0; i<MAX_CLIENTS; i++) {
       if (allClients[i].sock == id) {
          return allClients[i];
       }
@@ -595,16 +601,9 @@ static int getSocketIdByUsername(const char username[SMALL_SIZE], const Client l
 // --------------- from list ---------------
 
 static Client userFromList(int input, Client listAllClients[]) {
-   int nbExistingUsers = 1;
-
-   for (int i = 0; i < MAX_CLIENTS; i++) {
-      if (listAllClients[i].sock != IMPOSSIBLE_ID)
-      {
-         if (nbExistingUsers == input) {
-            return listAllClients[i];
-         }
-         nbExistingUsers++;
-      }
+   if (listAllClients[input].sock != IMPOSSIBLE_ID)
+   {
+      return listAllClients[input];
    }
    debug("No clients found !");
    Client c;
@@ -613,15 +612,8 @@ static Client userFromList(int input, Client listAllClients[]) {
 }
 
 static int gameFromList(int input, Game listAllGames[]) {
-   int nbExistingGames = 1;
-
-   for (int i = 0; i < MAX_CLIENTS; i++) {
-      if (listAllGames[i].active == 1) {
-         if (nbExistingGames == input) {
-            return i;
-         }
-         nbExistingGames++;
-      }
+   if (listAllGames[input].active == 1) {
+      return input;
    }
    debug("No game found !");
    return -1;

@@ -218,7 +218,7 @@ int bestMove(int board[12], char player) {
 	}
 	for (int i=0; i<6; i++) {
 		playMoveAndTake(board,tmp,i+(player-1)*6); // play move 0..5 if player == 1 and move 6..11 if player == 2
-			showBoard(board);
+			show_board(board);
 		if ( sumSide(board,nextPlayer(player)) > max ) {
 			max = sumSide(board,nextPlayer(player));
 			iMax = i+(player-1)*6;
@@ -227,7 +227,7 @@ int bestMove(int board[12], char player) {
 	return iMax;
 }
 
-int moveOkay(Game g, int move) {
+char moveOkay(Game g, int move) {
 	if (g.board[move] == 0)
 	{
 		return 4;
@@ -307,7 +307,7 @@ int oldMain() {
 	int nbTour = 1;
 	while ( g.finished == 0 ) {
 		printf("-------------- TOUR %d ----------------",nbTour);
-		showBoard(g.board);
+		show_board(g.board);
 		humanMove = -1;
 		debugd(g.currentPlayer);
 		while ( g.currentPlayer == 1 && ( humanMove <= 0 || humanMove > 6 ) ) {

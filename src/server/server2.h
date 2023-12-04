@@ -74,7 +74,7 @@ static int showGameList(Client client, Game gameList[MAX_GAMES], Client clientLi
 
 // --------------- select ---------------
 
-static Client getClient(const int id, const Client allClients[MAX_CLIENTS], const int nbClients);
+static Client getClient(const int id, const Client allClients[MAX_CLIENTS]);
 static Client* findClient(Client clients[MAX_CLIENTS], const char name[SMALL_SIZE]);
 static int getSocketIdByUsername(const char username[SMALL_SIZE], const Client listAllClient[MAX_CLIENTS]);
 
