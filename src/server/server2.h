@@ -61,6 +61,7 @@ static void app(void);
 static void unsubscribeFromDiffusion(int diffusion[], int max_size, int socketId);
 static void subscribeToDiffusion(int diffusion[], int max_size, int socketId);
 static void switchDiffusion(Client *client, char to, int diffusionMainMenu[MAX_CLIENTS], int diffusionUsersList[MAX_CLIENTS], int diffusionGamesList[MAX_CLIENTS], int *diffusionOfTheGame);
+static void sendToDiffusion(Client diffusion[], char string[BUF_SIZE]);
 
 // --------------- show ---------------
 
