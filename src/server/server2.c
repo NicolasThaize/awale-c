@@ -131,7 +131,7 @@ static void app(void) {
                               writeClient(client->sock, "Error, cannot accept a challenge that does not exist");
                               continue;
                            }
-
+                           writeClient(client->sock, "Challenge accepted, good luck.");
                            listOfGames[indice].active = 1;
                            listOfGames[indice].finished = 0;
                            // TODO : initialise board and other variables of the game
@@ -145,18 +145,20 @@ static void app(void) {
                               debug(name);
                               debug("NOT FOUND !");
                            }
-                           // TODO : send the board to the players
-                           showBoard(*client, listOfGames[indice].board);
-                           showBoard(*opponent, listOfGames[indice].board);
-                           show_board(listOfGames[indice].board);
-                           // TODO : request the move of the first player
+
                            if ( listOfGames[indice].currentPlayer == 2 ) {
                               showMoveRequest(*client);
+                              showOtherPlayer(*opponent, *client);
                            } else if ( listOfGames[indice].currentPlayer == 1 ) {
                               showMoveRequest(*opponent);
+                              showOtherPlayer(*client, *opponent);
                            } else {
                               debugd(listOfGames[indice].currentPlayer);
                            }
+                           
+                           showBoard(*client, listOfGames[indice].board);
+                           showBoard(*opponent, listOfGames[indice].board);
+                           show_board(listOfGames[indice].board);
                         } else {
                            debug("Problem sscanf");
                         }
@@ -271,6 +273,7 @@ static void app(void) {
                            printf("%s", cSelected.name);
                            // inform the challenged
                            showChallenge(client->name, cSelected);
+                           writeClient(client->sock, "The game request has been sent.");
                            break;
                         case GAME_LIST:
                            indice = gameFromList(number, listOfGames); // how to get the right number ? (ex: the game 2 disapear)
